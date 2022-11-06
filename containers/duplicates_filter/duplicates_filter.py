@@ -1,4 +1,3 @@
-import csv
 import os
 from common import broadcast_copies
 from common import middleware
@@ -45,14 +44,16 @@ class DuplicationFilter:
 
     #BORRAR: ver si creamos una clase abstracta de la que heredan todas las clases de 
     def process_eof(self, input_message, client_id):
-        if not (client_id in self.clients_received_eofs):
-            self.clients_received_eofs[client_id] = 1
-        else:
-            self.clients_received_eofs[client_id] += 1
+        # if not (client_id in self.clients_received_eofs):
+        #     self.clients_received_eofs[client_id] = 1
+        # else:
+        #     self.clients_received_eofs[client_id] += 1
             
-        if self.clients_received_eofs[client_id] == self.previous_stage_size:
-            return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, _on_last_eof)
-        return None #BORRAR: chequear que retornamos en este caso
+        # if self.clients_received_eofs[client_id] == self.previous_stage_size:
+        #     return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, self._on_last_eof)
+        # return None #BORRAR: chequear que retornamos en este caso
+
+        return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, self._on_last_eof)
 
 
     def process_received_message(self, input_message):

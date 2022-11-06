@@ -60,9 +60,10 @@ class DuplicationFilter:
         client_id = 'generic_client_id'
         if input_message['type'] == 'data':
             return self.filter_duplicates(input_message, client_id)
-        elif input_message['case'] == 'eof':
-            return self.process_eof(input_message, client_id)
-        #BORRAR: chequear si aca tiramos alguna exception        
+        else:
+            if input_message['case'] == 'eof':
+                return self.process_eof(input_message, client_id)
+            return None
 
     def start_received_messages_processing(self):
         self.middleware.run()

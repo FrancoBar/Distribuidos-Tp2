@@ -1,5 +1,3 @@
-import time
-import fcntl
 import csv
 import os
 from common import broadcast_copies
@@ -19,73 +17,49 @@ OUTPUT_QUEUE = config['DUPLICATES_FILTER']['output_queue']
 OUTPUT_COLUMNS = config['DUPLICATES_FILTER']['output_columns'].split(',')
 STORAGE = config['DUPLICATES_FILTER']['storage']
     
-def filter_duplicates(input_message):
-    if input_message['type'] == 'control':
-        return input_message
-
-    with open(STORAGE + input_message['video_id'], 'a+') as id_file:
-        fcntl.flock(id_file, fcntl.LOCK_EX)
-        id_file.seek(0)
-
-        reader = csv.DictReader(id_file, fieldnames=['categoryId', 'title'], quotechar='"')
-        for record in reader:
-            if record['title'] == input_message['title'] and record['categoryId'] == input_message['categoryId']:
-                fcntl.flock(id_file, fcntl.LOCK_UN)
-                return None
-
-        id_file.write('"{}","{}"\n'.format(input_message['categoryId'], input_message['title']))
-        id_file.flush()
-        fcntl.flock(id_file, fcntl.LOCK_UN)
-
-    input_message['case']='unique_pair'
-    return {k: input_message[k] for k in OUTPUT_COLUMNS}
-
-def _on_last_eof(middleware, input_message):
-    utils.clear_all_files(STORAGE)
-    return {'type':'control', 'case':'eof'}
-
-def message_callback(middleware, input_message):
-    
-    if input_message['type'] == 'data':
-        return filter_duplicates(input_message)
-    else:
-        if input_message['case'] == 'eof':
-            return broadcast_copies.broadcast_copies(middleware, input_message, ID, COPIES, None, _on_last_eof)
-
-        return None
-
-middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, message_callback)
-middleware.run()
-
-
 class DuplicationFilter:
     def __init__(self):
         self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
-        self.clients_sent_videos = {} # key: client_id, value: sent_videos_set
-        self.received_eofs = 0
+        self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
+        self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.previous_stage_size = self.middleware.get_previous_stage_size()
 
-        signal.signal(signal.SIGTERM, self.__handle_signal)
+        # signal.signal(signal.SIGTERM, self.__handle_signal)
+
+    def filter_duplicates(self, input_message, client_id):
+            video_id = input_message['video_id']
+            title = input_message['title']
+            category = input_message['categoryId']
+            client_set = self.clients_sent_videos[client_id]
+            video_tuple = (video_id, title, category)
+            if not (video_tuple in client_set):
+                client_set.add(video_tuple) #BORRAR COMENTARIO: en caso de que falle usar un string con los datos concatenados
+                # self.middleware.send({ "type": cluster_type, "tuple": (video_id, title, category) })
+                input_message['case']='unique_pair'
+                return {k: input_message[k] for k in OUTPUT_COLUMNS}
+            else:
+                return None
+
+    #BORRAR: ver si creamos una clase abstracta de la que heredan todas las clases de 
+    def process_eof(self, client_id):
+        if not (client_id in self.clients_received_eofs):
+            self.clients_received_eofs[client_id] = 1
+        else:
+            self.clients_received_eofs[client_id] += 1
+            
+        if self.clients_received_eofs[client_id] == self.previous_stage_size:
+            return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, _on_last_eof)
+        return None #BORRAR: chequear que retornamos en este caso
+
 
     def process_received_message(self, ch, method, properties, body):
-        line = json.loads(body)
+        client_id = 'generic_client_id'
+        if input_message['type'] == 'data':
+            return self.filter_duplicates(input_message, client_id)
+        elif input_message['case'] == 'eof':
+            return self.process_eof(client_id)
 
-        if method.routing_key == general_config["general_subscription_routing_key"]:
-            self.received_eofs += 1
-            if self.received_eofs == self.previous_stage_size:
-                self.has_to_close = True
-        else:
-            video_id = line[local_config["indexes"]["video_id"]]
-            title = line[local_config["indexes"]["title"]]
-            category = line[local_config["indexes"]["category"]]
-            if not (video_id in self.sent_videos):
-                self.sent_videos.add(video_id)
-                self.middleware.send({ "type": cluster_type, "tuple": (video_id, title, category) })
-
-        if self.has_to_close:
-            self.middleware.send_general(None)
-            self.middleware.close()
-            print("Closed MOM")
+        #BORRAR: chequear si aca tiramos alguna exception        
 
     def start_received_messages_processing(self):
         self.middleware.run()
@@ -94,63 +68,8 @@ class DuplicationFilter:
         self.has_to_close = True
 
 def main():
-    # logging.basicConfig(
-    #     format='%(asctime)s %(levelname)-8s %(message)s',
-    #     level="DEBUG",
-    #     datefmt='%Y-%m-%d %H:%M:%S',
-    # )
     wrapper = DuplicationFilter()
     wrapper.start_received_messages_processing()
 
 if __name__ == "__main__":
     main()
-
-
-# class DuplicationFilter:
-#     def __init__(self):
-#         self.middleware = MOM(cluster_type, self.process_received_message)
-#         self.sent_videos = set()
-#         self.received_eofs = 0
-#         self.has_to_close = False
-#         self.is_processing_message = False
-#         self.previous_stage_size = self.middleware.get_previous_stage_size()
-
-#         signal.signal(signal.SIGTERM, self.__handle_signal)
-
-#     def process_received_message(self, ch, method, properties, body):
-#         line = json.loads(body)
-
-#         if method.routing_key == general_config["general_subscription_routing_key"]:
-#             self.received_eofs += 1
-#             if self.received_eofs == self.previous_stage_size:
-#                 self.has_to_close = True
-#         else:
-#             video_id = line[local_config["indexes"]["video_id"]]
-#             title = line[local_config["indexes"]["title"]]
-#             category = line[local_config["indexes"]["category"]]
-#             if not (video_id in self.sent_videos):
-#                 self.sent_videos.add(video_id)
-#                 self.middleware.send({ "type": cluster_type, "tuple": (video_id, title, category) })
-
-#         if self.has_to_close:
-#             self.middleware.send_general(None)
-#             self.middleware.close()
-#             print("Closed MOM")
-
-#     def start_received_messages_processing(self):
-#         self.middleware.start_received_messages_processing()
-
-#     def __handle_signal(self, *args): # To prevent double closing 
-#         self.has_to_close = True
-
-# def main():
-#     # logging.basicConfig(
-#     #     format='%(asctime)s %(levelname)-8s %(message)s',
-#     #     level="DEBUG",
-#     #     datefmt='%Y-%m-%d %H:%M:%S',
-#     # )
-#     wrapper = DuplicationFilter()
-#     wrapper.start_received_messages_processing()
-
-# if __name__ == "__main__":
-#     main()

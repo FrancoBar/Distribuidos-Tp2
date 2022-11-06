@@ -34,14 +34,17 @@ class DuplicationFilter:
             video_tuple = (video_id, title, category)
             if not (video_tuple in client_set):
                 client_set.add(video_tuple) #BORRAR COMENTARIO: en caso de que falle usar un string con los datos concatenados
-                # self.middleware.send({ "type": cluster_type, "tuple": (video_id, title, category) })
                 input_message['case']='unique_pair'
                 return {k: input_message[k] for k in OUTPUT_COLUMNS}
             else:
                 return None
 
+    def _on_last_eof(middleware, input_message):
+        utils.clear_all_files(STORAGE)
+        return {'type':'control', 'case':'eof'}
+
     #BORRAR: ver si creamos una clase abstracta de la que heredan todas las clases de 
-    def process_eof(self, client_id):
+    def process_eof(self, input_message, client_id):
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 1
         else:
@@ -52,20 +55,17 @@ class DuplicationFilter:
         return None #BORRAR: chequear que retornamos en este caso
 
 
-    def process_received_message(self, ch, method, properties, body):
+    def process_received_message(self, input_message):
         client_id = 'generic_client_id'
         if input_message['type'] == 'data':
             return self.filter_duplicates(input_message, client_id)
         elif input_message['case'] == 'eof':
-            return self.process_eof(client_id)
-
+            return self.process_eof(input_message, client_id)
         #BORRAR: chequear si aca tiramos alguna exception        
 
     def start_received_messages_processing(self):
         self.middleware.run()
 
-    def __handle_signal(self, *args): # To prevent double closing 
-        self.has_to_close = True
 
 def main():
     wrapper = DuplicationFilter()

@@ -13,23 +13,6 @@ OUTPUT_QUEUE = config['LIKES_FILTER']['output_queue']
 OUTPUT_COLUMNS = config['LIKES_FILTER']['output_columns'].split(',')
 LIKES_MIN =  int(config['LIKES_FILTER']['min_likes'])
 
-def filter_likes(middleware, input_message):
-    if input_message['type'] == 'control':
-        return input_message
-
-    try:
-        if int(input_message['likes']) >= LIKES_MIN:
-            return {k: input_message[k] for k in OUTPUT_COLUMNS}
-    except KeyError as e:
-        logging.error('Entry lacks "likes" field.')
-        logging.error(input_message)
-    
-    return None
-
-middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, filter_likes)
-middleware.run()
-
-
 
 class LikesFilter:
     def __init__(self):
@@ -60,9 +43,6 @@ class LikesFilter:
 
     def start_received_messages_processing(self):
         self.middleware.run()
-
-    def __handle_signal(self, *args): # To prevent double closing 
-        self.has_to_close = True
 
 def main():
     wrapper = LikesFilter()

@@ -93,7 +93,7 @@ class _BaseFilter:
         self._filter_func = filter_func
 
     def _on_message_callback(self, input_message):
-        output_message = self._filter_func(self, input_message)
+        output_message = self._filter_func(input_message)
         self._output_queue.send(output_message)
 
     def send(self, output_message):

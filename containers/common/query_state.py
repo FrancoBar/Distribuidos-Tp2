@@ -28,6 +28,8 @@ class QueryState:
         self._build_table()
 
     def _build_queries(self):
+        #BORRAR: ver si en vez de hacer lo del substring usamos un includes QUERY_TYPE, asi
+        # si despeues cambiamos el tipo de archivo no rompe por olvidarnos de cambiar el -4 
         query_file_list = list(filter(lambda file_name : file_name[-4:] == QUERY_TYPE, os.listdir(self.storage)))
         for query_id in query_file_list:
             prev_size = 0

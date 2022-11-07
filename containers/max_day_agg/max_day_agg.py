@@ -16,7 +16,6 @@ class MaxViewsDay:
         self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.previous_stage_size = self.middleware.get_previous_stage_size()
-        # self.max_date = [None, 0]
         self.max_date = {} # key: client_id, value: [None, 0]
 
 
@@ -38,7 +37,7 @@ class MaxViewsDay:
             if input_message['case'] != 'eof':
                 return None
 
-            output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date':max_date[client_id][0], 'view_count':max_date[client_id][1]}
+            output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':max_date[client_id][1]}
             middleware.send(output_message)
             del self.max_date[client_id]
 

@@ -57,6 +57,64 @@ class _ChannelQueue:
         self._open = False
         self._channel.stop_consuming()
 
+class _ExchangeQueue:
+    def __init__(self, channel, input_exchange, output_exchange, output_route_key_gen,input_route_key, control_route_key=None):
+        self._callback = None
+        self._open = True
+        self._input_exchange = input_exchange
+        self._output_exchange = output_exchange
+        self._output_route_key_gen = output_route_key_gen
+        self._channel = channel
+
+        queue_name = self._channel.queue_declare(queue='', durable=True).method.queue
+        self.channel.exchange_declare(exchange=input_exchange, exchange_type='direct')
+        self.channel.queue_bind(exchange=input_exchange, queue=queue_name, routing_key=id)
+        if control_route_key:
+            self.channel.queue_bind(exchange=input_exchange, queue=queue_name, routing_key=control_route_key)
+
+        self.channel.exchange_declare(exchange=output_exchange, exchange_type='direct')
+
+    def _on_message_callback(self, ch, method, properties, body):
+        if not self._open:
+            return
+        input_message = json.loads(body)
+        if self._callback:
+            self._callback(input_message)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
+    def start_recv(self, on_message_callback):
+        if not self._open:
+            return
+        self._callback = on_message_callback
+        #Helps reducing unfair distribution of work when workload of messages follows a pattern.
+        self._channel.basic_qos(prefetch_count=1)
+        self._channel.basic_consume(queue=self._input_exchange, on_message_callback=self._on_message_callback)
+        try:
+            self._channel.start_consuming()
+        except IOError as e:
+            if self._open:
+                raise e
+        except Exception as e:
+            raise e
+
+    def stop_recv(self):
+        self._channel.stop_consuming()
+
+    def send(self, message):
+        if message and self._open:
+            output_message = json.dumps(message)
+            self._channel.basic_publish(
+            exchange=self._output_exchange,
+            routing_key= self._output_route_key_gen(message),
+            body=output_message,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ))
+
+    def close(self):
+        self._open = False
+        self._channel.stop_consuming()
+
 class _TCPQueue:
     def __init__(self, socket):
         self._open = True
@@ -124,6 +182,21 @@ class ChannelChannelFilter(_BaseFilter):
         super().__init__(
             _ChannelQueue(channel, input_queue),
             _ChannelQueue(channel, output_queue),
+            filter_func
+            )
+
+    def sigterm_handler(self, signum, frame):
+        super().sigterm_handler(signum, frame)
+        self._connection.close()
+
+class ExchangeExchangeFilter(_BaseFilter):
+    def __init__(self, middleware_host, input_exchange, input_route_key,  control_route_key=None, output_exchange, output_route_key_gen,  filter_func):
+        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = self._connection.channel()
+        exchange_queue = _ExchangeQueue(channel, input_exchange, output_exchange, output_route_key_gen, input_route_key, control_route_key)
+        super().__init__(
+            exchange_queue,
+            exchange_queue,
             filter_func
             )
 

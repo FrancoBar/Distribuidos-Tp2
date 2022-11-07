@@ -1,4 +1,5 @@
-FROM rabbitmq-python-base:0.0.1
+FROM python
+RUN pip3 install pika
 
 COPY duplicates_filter/duplicates_filter.py /root/duplicates_filter.py
 COPY common /root/common

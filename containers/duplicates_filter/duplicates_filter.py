@@ -21,9 +21,7 @@ class DuplicationFilter:
         self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.previous_stage_size = self.middleware.get_previous_stage_size()
-
-        # signal.signal(signal.SIGTERM, self.__handle_signal)
+        # self.previous_stage_size = self.middleware.get_previous_stage_size()
 
     def filter_duplicates(self, input_message, client_id):
             video_id = input_message['video_id']

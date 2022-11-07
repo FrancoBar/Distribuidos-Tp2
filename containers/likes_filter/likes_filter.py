@@ -18,7 +18,7 @@ class LikesFilter:
     def __init__(self):
         self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.previous_stage_size = self.middleware.get_previous_stage_size()
+        # self.previous_stage_size = self.middleware.get_previous_stage_size()
 
 
     def filter_likes(self, input_message):

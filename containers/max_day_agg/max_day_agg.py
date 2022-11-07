@@ -11,7 +11,7 @@ RABBIT_HOST = config['RABBIT']['address']
 INPUT_QUEUE  = config['MAX_AGG_FILTER']['input_queue']
 OUTPUT_QUEUE = config['MAX_AGG_FILTER']['output_queue']
 
-class MaxViewsDay:
+class MaxDayAggregator:
     def __init__(self):
         self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
@@ -37,7 +37,7 @@ class MaxViewsDay:
             if input_message['case'] != 'eof':
                 return None
 
-            output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':max_date[client_id][1]}
+            output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
             middleware.send(output_message)
             del self.max_date[client_id]
 
@@ -48,7 +48,7 @@ class MaxViewsDay:
         self.middleware.run()
 
 def main():
-    wrapper = MaxViewsDay()
+    wrapper = MaxDayAggregator()
     wrapper.start_received_messages_processing()
 
 if __name__ == "__main__":

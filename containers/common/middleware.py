@@ -58,7 +58,7 @@ class _ChannelQueue:
         self._channel.stop_consuming()
 
 class _ExchangeQueue:
-    def __init__(self, channel, input_exchange, output_exchange, output_route_key_gen,input_route_key, control_route_key=None):
+    def __init__(self, channel, input_exchange, output_exchange, output_route_key_gen, input_route_key, control_route_key=None):
         self._callback = None
         self._open = True
         self._input_exchange = input_exchange
@@ -66,13 +66,13 @@ class _ExchangeQueue:
         self._output_route_key_gen = output_route_key_gen
         self._channel = channel
 
-        queue_name = self._channel.queue_declare(queue='', durable=True).method.queue
-        self.channel.exchange_declare(exchange=input_exchange, exchange_type='direct')
-        self.channel.queue_bind(exchange=input_exchange, queue=queue_name, routing_key=id)
+        self._queue_name = self._channel.queue_declare(queue='', durable=True).method.queue
+        self._channel.exchange_declare(exchange=input_exchange, exchange_type='direct')
+        self._channel.queue_bind(exchange=input_exchange, queue=self._queue_name, routing_key=input_route_key)
         if control_route_key:
-            self.channel.queue_bind(exchange=input_exchange, queue=queue_name, routing_key=control_route_key)
+            self._channel.queue_bind(exchange=input_exchange, queue=self._queue_name, routing_key=control_route_key)
 
-        self.channel.exchange_declare(exchange=output_exchange, exchange_type='direct')
+        self._channel.exchange_declare(exchange=output_exchange, exchange_type='direct')
 
     def _on_message_callback(self, ch, method, properties, body):
         if not self._open:
@@ -88,7 +88,7 @@ class _ExchangeQueue:
         self._callback = on_message_callback
         #Helps reducing unfair distribution of work when workload of messages follows a pattern.
         self._channel.basic_qos(prefetch_count=1)
-        self._channel.basic_consume(queue=self._input_exchange, on_message_callback=self._on_message_callback)
+        self._channel.basic_consume(queue=self._queue_name, on_message_callback=self._on_message_callback)
         try:
             self._channel.start_consuming()
         except IOError as e:
@@ -190,7 +190,7 @@ class ChannelChannelFilter(_BaseFilter):
         self._connection.close()
 
 class ExchangeExchangeFilter(_BaseFilter):
-    def __init__(self, middleware_host, input_exchange, input_route_key,  control_route_key=None, output_exchange, output_route_key_gen,  filter_func):
+    def __init__(self, middleware_host, input_exchange, input_route_key,  control_route_key, output_exchange, output_route_key_gen,  filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
         channel = self._connection.channel()
         exchange_queue = _ExchangeQueue(channel, input_exchange, output_exchange, output_route_key_gen, input_route_key, control_route_key)

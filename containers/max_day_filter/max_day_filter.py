@@ -50,6 +50,7 @@ class MaxDayFilter:
     def filter_max_date(self, input_message, client_id):
         if not (client_id in self.clients_dates_views):
             self.clients_dates_views[client_id] = {}
+            self.max_date[client_id] = [None, 0]
         client_dictionary = self.clients_dates_views[client_id]
 
         temp = time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')

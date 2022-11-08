@@ -19,7 +19,7 @@ FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
 aux_client_id = 'generic_client_id'
 
-class ThumbnailsDownloader:
+class RequestListener:
     def __init__(self):
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
@@ -45,16 +45,14 @@ class ThumbnailsDownloader:
         except Exception as e:
             raise e
 
-
-
     def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
-            self.middleware.stop()
+            logging.error('VOY A ENVIAR UN EOF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+            self.entry_input.stop()
         return input_message
 
     def answers_callback(self, input_message):
         client_id = aux_client_id
-        global eof_amount
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':
                 if not (client_id in self.clients_received_eofs):
@@ -73,7 +71,7 @@ class ThumbnailsDownloader:
         self.server.run()
 
 def main():
-    wrapper = ThumbnailsDownloader()
+    wrapper = RequestListener()
     wrapper.run()
 
 if __name__ == "__main__":

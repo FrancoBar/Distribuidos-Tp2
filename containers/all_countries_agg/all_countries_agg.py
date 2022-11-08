@@ -21,7 +21,7 @@ OUTPUT_QUEUE = config['ALL_COUNTRIES_AGG']['output_queue']
 OUTPUT_COLUMNS = config['ALL_COUNTRIES_AGG']['output_columns'].split(',') 
 MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 STORAGE = config['ALL_COUNTRIES_AGG']['storage']
-amount_countries = INVALID_AMOUNT
+# amount_countries = INVALID_AMOUNT
 
 aux_client_id = 'generic_client_id'
 
@@ -36,7 +36,8 @@ class CountriesAmountFilter:
     def _on_recv_eof(self, input_message):
         client_id = aux_client_id
         del self.clients_countries_amount[client_id]
-        del self.clients_max_day[client_id]
+        del self.clients_countries_per_day[client_id]
+        # del self.clients_max_day[client_id]
         return None
 
     def _on_last_eof(self, input_message):
@@ -44,6 +45,7 @@ class CountriesAmountFilter:
         return {'type':'control', 'case':'eof'}
 
     def _on_recv_config(self, input_message):
+        # print("SETEE EL CONFIG AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAV")
         client_id = aux_client_id
         self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
         return None
@@ -88,9 +90,10 @@ class CountriesAmountFilter:
         return output_message
 
     def process_received_message(self, input_message):
-
+        client_id = aux_client_id
         if input_message['type'] == 'data':
-            if amount_countries == INVALID_AMOUNT:
+            if not (client_id in self.clients_countries_amount):
+            # if amount_countries == INVALID_AMOUNT:
                 #Put back data message until config message
                 self.middleware.put_back(input_message)
                 return None
@@ -98,9 +101,9 @@ class CountriesAmountFilter:
                 return self.all_countries_agg(input_message)
         else:
             if input_message['case'] == 'eof':
-                return broadcast_copies.broadcast_copies(middleware, input_message, ID, COPIES, self._on_recv_eof, self._on_last_eof)
+                return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, self._on_recv_eof, self._on_last_eof)
             else:
-                return broadcast_copies.broadcast_copies(middleware, input_message, ID, COPIES, self._on_recv_config, None)
+                return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, self._on_recv_config, None)
                 
             return None
 

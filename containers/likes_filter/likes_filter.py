@@ -36,7 +36,7 @@ class LikesFilter:
             return input_message
 
         # If not eof
-        return self.filter_likes(self, input_message)
+        return self.filter_likes(input_message)
 
         # If client eof
             # volar todo y enviar

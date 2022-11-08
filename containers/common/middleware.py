@@ -62,7 +62,8 @@ class _ExchangeQueueIn(_ChannelQueue):
         self._callback = None
         self._open = True
         self._channel = channel
-        self._queue_name = self._channel.queue_declare(queue='', durable=True).method.queue
+        self._queue_name = input_exchange + '_' + input_route_key
+        self._channel.queue_declare(queue=self._queue_name, durable=True)
         self._channel.exchange_declare(exchange=input_exchange, exchange_type='direct', durable=True)
         self._channel.queue_bind(exchange=input_exchange, queue=self._queue_name, routing_key=input_route_key)
         if control_route_key:
@@ -142,16 +143,11 @@ class _BaseFilter:
         if output_message:
             self._output_queue.send(output_message)
 
-    def put_back(self, output_message):
-        if output_message:
-            self._input_queue.send(output_message)
-
     def run(self):
         self._input_queue.start_recv(self._on_message_callback)
 
     def stop(self):
         self._input_queue.stop_recv()
-        self._output_queue.stop_recv()
 
     def sigterm_handler(self, signum, frame):
         logging.debug('SIGTERM received')
@@ -165,7 +161,7 @@ class _ConnectionFilter(_BaseFilter):
     
     def sigterm_handler(self, signum, frame):
         super().sigterm_handler(signum, frame)
-        self._connection.close()
+        #self._connection.close()
 
     def __del__(self):
         self._connection.close()
@@ -209,7 +205,7 @@ class ChannelTCPFilter(_ConnectionFilter):
             _TCPQueue(socket),
             filter_func
             ) 
-        
+
 class TCPExchangeFilter(_ConnectionFilter):
     def __init__(self, middleware_host, socket, output_exchange, output_route_key_gen, filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
@@ -229,37 +225,3 @@ class ExchangeTCPFilter(_ConnectionFilter):
             _TCPQueue(socket),
             filter_func
             )
-
-class Adaptor():
-    def __init__(self, middleware_host, input_queue, output_queues):
-        self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
-        self._input_queue = _ChannelQueue(channel, input_queue)
-        self._output_queues = []
-        for q in output_queues:
-            self._output_queues.append(_ChannelQueue(channel, q))
-
-    def _on_message_callback(self, input_message):
-        for q in self._output_queues:
-            q.send(input_message)
-
-    def send(self, output_message):
-        if output_message:
-            for q in self._output_queues:
-                q.stop_recv()
-
-    def stop(self):
-        self._input_queue.stop_recv()
-        for q in self._output_queues:
-            q.stop_recv()
-
-    def run(self):
-        self._input_queue.start_recv(self._on_message_callback)
-
-    def sigterm_handler(self, signum, frame):
-        logging.debug('SIGTERM received')
-        self._input_queue.close()
-        if self._prev_handler:
-            self._prev_handler(signum, frame)
-        self._connection.close()

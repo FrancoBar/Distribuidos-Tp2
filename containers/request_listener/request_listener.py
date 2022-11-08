@@ -45,7 +45,7 @@ server.run()
 
 
 
-client_id = 'generic_client_id'
+aux_client_id = 'generic_client_id'
 
 
 class ThumbnailsDownloader:
@@ -53,30 +53,51 @@ class ThumbnailsDownloader:
         # self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
-        self.entry_input = middleware.TCPChannelFilter(RABBIT_HOST, accept_socket, OUTPUT_QUEUE, entry_recv_callback)
-        self.entry_ouput = middleware.ChannelTCPFilter(RABBIT_HOST, INPUT_QUEUE, accept_socket, answers_callback)
+        self.entry_input = None
+        self.entry_ouput = None
+        self.server = server.Server(PORT, 1, connection_handler)
 
 
-    def entry_recv_callback(middleware, input_message):
+    def connection_handler(self, accept_socket):
+        try:
+            self.entry_input = middleware.TCPChannelFilter(RABBIT_HOST, accept_socket, OUTPUT_QUEUE, self.entry_recv_callback)
+            self.entry_ouput = middleware.ChannelTCPFilter(RABBIT_HOST, INPUT_QUEUE, accept_socket, self.answers_callback)
+            
+            logging.info('Receiving entries')
+            self.entry_input.run()
+
+            logging.info('Answering entries')
+            self.entry_ouput.run()
+
+        except IncompleteReadError as e:
+            logging.error('Client abruptly disconnected')
+            logging.exception(e)
+        except Exception as e:
+            raise e
+
+
+
+    def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
-            middleware.stop()
+            self.middleware.stop()
         return input_message
 
-    def answers_callback(middleware, input_message):
+    def answers_callback(self, input_message):
+        client_id = aux_client_id
         global eof_amount
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':
-                eof_amount += 1
-              if eof_amount != FLOWS_AMOUNT:
-                  return None
-              else:
-                  eof_amount = 0
+                if not (client_id in self.clients_received_eofs):
+                    self.clients_received_eofs[client_id] = 0
+                self.clients_received_eofs[client_id] += 1
+                if self.clients_received_eofs[client_id] != FLOWS_AMOUNT:
+                    return None
+                else:
+                    del self.clients_received_eofs[client_id]
             else:
                 return None
-            
+        
         return input_message
-
-
 
 
 def main():

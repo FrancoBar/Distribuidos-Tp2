@@ -136,6 +136,62 @@ services:
   #     - SERVICE_NAME=ADAPTOR_2
   #     - PYTHONUNBUFFERED=1
 
+  test_exchange_input:
+    container_name: test_exchange_input
+    build:
+      context: ./containers/
+      dockerfile: test_exchange_input/Dockerfile
+    restart: on-failure
+    depends_on:
+      - test_exex
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  test_exex:
+    container_name: test_exex
+    build:
+      context: ./containers/
+      dockerfile: test_exex/Dockerfile
+    restart: on-failure
+    depends_on:
+      - test_extcp
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  test_extcp:
+    container_name: test_extcp
+    build:
+      context: ./containers/
+      dockerfile: test_extcp/Dockerfile
+    restart: on-failure
+    depends_on:
+      - test_tcpex
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - SERVER_HOST=test_tcpex
+      - SERVER_PORT=7654
+      - PYTHONUNBUFFERED=1
+
+  test_tcpex:
+    container_name: test_tcpex
+    build:
+      context: ./containers/
+      dockerfile: test_tcpex/Dockerfile
+    restart: on-failure
+    depends_on:
+      - test_exchange_output_0
+      - test_exchange_output_1
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - SERVER_PORT=7654
+      - PYTHONUNBUFFERED=1
+
   test_exchange_output_0:
     container_name: test_exchange_output_0
     build:
@@ -165,22 +221,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - ID=1
-
-
-  test_exchange_input:
-    container_name: input_creator
-    build:
-      context: ./containers/
-      dockerfile: test_exchange_input/Dockerfile
-    restart: on-failure
-    depends_on:
-      - test_exchange_output_0
-      - test_exchange_output_1
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-
 
   # tag_filter:
   #   container_name: tag_filter

@@ -1,7 +1,6 @@
-# FROM rabbitmq-python-base:0.0.1
-FROM python
+FROM python:3.9.7-slim
 RUN pip3 install pika
 
-COPY test_exchange_input/input.py /root/input.py
+COPY test_exchange_input/test_exchange_input.py /root/test_exchange_input.py
 COPY common /root/common
-ENTRYPOINT ["python3", "/root/input.py"]
+ENTRYPOINT ["python3", "/root/test_exchange_input.py"]

@@ -35,8 +35,11 @@ class CountriesAmountFilter:
 
     def _on_recv_eof(self, input_message):
         client_id = aux_client_id
-        del self.clients_countries_amount[client_id]
-        del self.clients_countries_per_day[client_id]
+        if client_id in self.clients_countries_amount:
+            del self.clients_countries_amount[client_id]
+        if client_id in self.clients_countries_per_day:
+            del self.clients_countries_per_day[client_id]
+    
         # del self.clients_max_day[client_id]
         return None
 

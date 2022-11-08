@@ -48,6 +48,7 @@ def recv_answer(client_socket):
             message = json.loads(message_str)
 
             if message['type'] == 'control' and message['case'] == 'eof':
+                print("BORRAR Lei un eof")
                 break
             if message['case'] == 'img':
                 img_data = base64.b64decode(message['img_data'])
@@ -102,6 +103,8 @@ for p in process_list:
 print('Start receiving...')
 message = json.dumps({'type':'control', 'case':'eof'}, indent = 4)
 transmition.send_str(client_socket, message)
+print("BORRAR Envie eof")
 recv_answer(client_socket)
+print("BORRAR Lei respuestas")
 client_socket.close()
 print('End')

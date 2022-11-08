@@ -27,6 +27,8 @@ class DuplicationFilter:
             video_id = input_message['video_id']
             title = input_message['title']
             category = input_message['categoryId']
+            if not (client_id in self.clients_sent_videos):
+                self.clients_sent_videos[client_id] = set()
             client_set = self.clients_sent_videos[client_id]
             video_tuple = (video_id, title, category)
             if not (video_tuple in client_set):

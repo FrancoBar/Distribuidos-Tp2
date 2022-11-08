@@ -21,8 +21,6 @@ class MaxDayAggregator:
 
     def filter_max_agg(self, input_message, client_id):
         amount_new = int(input_message['view_count'])
-        if not (client_id in self.max_date):
-            self.max_date[client_id] = [None, 0]
         if self.max_date[client_id][1] <= amount_new:
             self.max_date[client_id][0] = input_message['date']
             self.max_date[client_id][1] = amount_new
@@ -31,6 +29,8 @@ class MaxDayAggregator:
 
     def process_received_message(self, input_message):
         client_id = 'generic_client_id'
+        if not (client_id in self.max_date):
+            self.max_date[client_id] = [None, 0]
         if input_message['type'] == 'data':
             return self.filter_max_agg(input_message, client_id)
         else:
@@ -38,7 +38,7 @@ class MaxDayAggregator:
                 return None
 
             output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
-            middleware.send(output_message)
+            self.middleware.send(output_message)
             del self.max_date[client_id]
 
             return {'type':'control', 'case':'eof', 'client_id': client_id}

@@ -159,7 +159,18 @@ class _BaseFilter:
         if self._prev_handler:
             self._prev_handler(signum, frame)
 
-class ChannelChannelFilter(_BaseFilter):
+class _ConnectionFilter(_BaseFilter):
+    def __init__(self, input_queue, output_queue, filter_func):
+        super().__init__(input_queue, output_queue,filter_func)
+    
+    def sigterm_handler(self, signum, frame):
+        super().sigterm_handler(signum, frame)
+        self._connection.close()
+
+    def __del__(self):
+        self._connection.close()
+
+class ChannelChannelFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_queue, output_queue, filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
         channel = self._connection.channel()
@@ -169,11 +180,7 @@ class ChannelChannelFilter(_BaseFilter):
             filter_func
             )
 
-    def sigterm_handler(self, signum, frame):
-        super().sigterm_handler(signum, frame)
-        self._connection.close()
-
-class ExchangeExchangeFilter(_BaseFilter):
+class ExchangeExchangeFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_exchange, input_route_key,  control_route_key, output_exchange, output_route_key_gen,  filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
         channel = self._connection.channel()
@@ -183,11 +190,7 @@ class ExchangeExchangeFilter(_BaseFilter):
             filter_func
             )
 
-    def sigterm_handler(self, signum, frame):
-        super().sigterm_handler(signum, frame)
-        self._connection.close()
-
-class TCPChannelFilter(_BaseFilter):
+class TCPChannelFilter(_ConnectionFilter):
     def __init__(self, middleware_host, socket, output_queue, filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
         channel = self._connection.channel()
@@ -197,11 +200,17 @@ class TCPChannelFilter(_BaseFilter):
             filter_func
             )
 
-    def sigterm_handler(self, signum, frame):
-        super().sigterm_handler(signum, frame)
-        self._connection.close()
-
-class TCPExchangeFilter(_BaseFilter):
+class ChannelTCPFilter(_ConnectionFilter):
+    def __init__(self, middleware_host, input_queue, socket, filter_func):
+        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = self._connection.channel()
+        super().__init__(
+            _ChannelQueue(channel, input_queue),
+            _TCPQueue(socket),
+            filter_func
+            ) 
+        
+class TCPExchangeFilter(_ConnectionFilter):
     def __init__(self, middleware_host, socket, output_exchange, output_route_key_gen, filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
         channel = self._connection.channel()
@@ -211,25 +220,7 @@ class TCPExchangeFilter(_BaseFilter):
             filter_func
             )
 
-    def sigterm_handler(self, signum, frame):
-        super().sigterm_handler(signum, frame)
-        self._connection.close()
-
-class ChannelTCPFilter(_BaseFilter):
-    def __init__(self, middleware_host, input_queue, socket, filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
-        super().__init__(
-            _ChannelQueue(channel, input_queue),
-            _TCPQueue(socket),
-            filter_func
-            )
-
-    def sigterm_handler(self, signum, frame):
-        super().sigterm_handler(signum, frame)
-        self._connection.close()    
-
-class ExchangeTCPFilter(_BaseFilter):
+class ExchangeTCPFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_exchange, input_route_key, control_route_key, socket, filter_func):
         self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
         channel = self._connection.channel()
@@ -238,10 +229,6 @@ class ExchangeTCPFilter(_BaseFilter):
             _TCPQueue(socket),
             filter_func
             )
-
-    def sigterm_handler(self, signum, frame):
-        super().sigterm_handler(signum, frame)
-        self._connection.close()
 
 class Adaptor():
     def __init__(self, middleware_host, input_queue, output_queues):

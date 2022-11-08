@@ -36,7 +36,7 @@ class DuplicationFilter:
             else:
                 return None
 
-    def _on_last_eof(middleware, input_message):
+    def _on_last_eof(self, input_message):
         utils.clear_all_files(STORAGE)
         return {'type':'control', 'case':'eof'}
 

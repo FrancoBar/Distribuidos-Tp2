@@ -72,7 +72,7 @@ class MaxDayFilter:
             return self.filter_max_date(input_message, client_id)
         else:
             if input_message['case'] == 'eof':
-                return broadcast_copies.broadcast_copies(middleware, input_message, ID, COPIES, self._on_recv_eof, self._on_last_eof)
+                return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, self._on_recv_eof, self._on_last_eof)
 
             return None
 

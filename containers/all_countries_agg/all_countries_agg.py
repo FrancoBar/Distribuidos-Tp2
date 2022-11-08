@@ -30,7 +30,7 @@ class CountriesAmountFilter:
         self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
-        self.clients_countries_per_day = {} # key: client_id, value: { key: day, value: countries set}
+        self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
         self.clients_countries_amount = {} # key: client_id, value: countries_amount
 
     def _on_recv_eof(self, input_message):
@@ -58,21 +58,31 @@ class CountriesAmountFilter:
         temp=time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')
         input_message['trending_date']=time.strftime('%Y-%m-%d',temp)
         used_date = input_message['trending_date']
+        country = input_message['country']
+        video_id = input_message['video_id']
         output_message = None
 
+        if not (video_id in client_trending_days_dict):
+            client_trending_days_dict[video_id] = {}
+        video_dates = client_trending_days_dict[video_id]
+
+        if not (used_date in video_dates):
+            video_dates[used_date] = set()
+
+        if country in video_dates[used_date]:
+            return None
+                
+        video_dates[used_date].add(country)
+        date_countries_amount = len(video_dates[used_date])
+
         all_countries_trending_days_amount = 0
-        for date in client_trending_days_dict:
-            if len(client_trending_days_dict[date]) == client_countries_amount:
+        for date in video_dates:
+            if len(video_dates[date]) == client_countries_amount:
                 all_countries_trending_days_amount += 1
 
-        if not (used_date in client_trending_days_dict):
-            client_trending_days_dict[used_date] = set()
-        current_date_previous_countries_amount = len(client_trending_days_dict[used_date])
-        client_trending_days_dict[used_date].add(input_message['country'])
-        new_current_date_countries_amount = len(client_trending_days_dict[used_date])
-        if ((new_current_date_countries_amount == client_countries_amount) and 
-            (new_current_date_countries_amount != current_date_previous_countries_amount) and
-            (all_countries_trending_days_amount + 1 == MIN_DAYS)):
+        if all_countries_trending_days_amount > MIN_DAYS:
+            return None
+        elif (all_countries_trending_days_amount == MIN_DAYS) and (date_countries_amount == client_countries_amount):
            output_message = {k: input_message[k] for k in OUTPUT_COLUMNS}
 
         return output_message

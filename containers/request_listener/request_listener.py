@@ -17,45 +17,15 @@ OUTPUT_COLUMNS = config['REQUEST_LISTENER']['output_columns'].split(',')
 PORT = int(config['REQUEST_LISTENER']['port'])
 FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
-
-
-
-eof_amount = 0
-
-
-def connection_handler(accept_socket):
-    try:
-        entry_input = middleware.TCPChannelFilter(RABBIT_HOST, accept_socket, OUTPUT_QUEUE, entry_recv_callback)
-        entry_ouput = middleware.ChannelTCPFilter(RABBIT_HOST, INPUT_QUEUE, accept_socket, answers_callback)
-        
-        logging.info('Receiving entries')
-        entry_input.run()
-
-        logging.info('Answering entries')
-        entry_ouput.run()
-
-    except IncompleteReadError as e:
-        logging.error('Client abruptly disconnected')
-        logging.exception(e)
-    except Exception as e:
-        raise e
-
-server = server.Server(PORT, 1, connection_handler)
-server.run()
-
-
-
 aux_client_id = 'generic_client_id'
-
 
 class ThumbnailsDownloader:
     def __init__(self):
-        # self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
         self.entry_input = None
         self.entry_ouput = None
-        self.server = server.Server(PORT, 1, connection_handler)
+        self.server = server.Server(PORT, 1, self.connection_handler)
 
 
     def connection_handler(self, accept_socket):
@@ -99,10 +69,12 @@ class ThumbnailsDownloader:
         
         return input_message
 
+    def run(self):
+        self.server.run()
 
 def main():
     wrapper = ThumbnailsDownloader()
-    wrapper.start_received_messages_processing()
+    wrapper.run()
 
 if __name__ == "__main__":
     main()

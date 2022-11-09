@@ -11,11 +11,23 @@ LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
 RABBIT_HOST = config['RABBIT']['address']
-INPUT_QUEUE = config['REQUEST_LISTENER']['input_queue']
-OUTPUT_QUEUE = config['REQUEST_LISTENER']['output_queue']
+INPUT_EXCHANGE = config['REQUEST_LISTENER']['input_exchange']
+OUTPUT_EXCHANGE = config['REQUEST_LISTENER']['output_exchange']
 OUTPUT_COLUMNS = config['REQUEST_LISTENER']['output_columns'].split(',')
+HASHING_ATTRIBUTES = config['REQUEST_LISTENER']['hashing_attributes'].split(',')
+HASHING_ATTRIBUTES_2 = config['REQUEST_LISTENER']['hashing_attributes_2'].split(',')
+NODE_ID = config['REQUEST_LISTENER']['node_id']
+CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['REQUEST_LISTENER']['port'])
 FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
+
+PREVIOUS_STAGE_AMOUNT = "asdasdas" # Hacer un for de las etapas anteriores
+NEXT_STAGE_AMOUNT = config['REQUEST_LISTENER']['next_stage_amount'] # Hacer un for de las etapas anteriores
+NEXT_STAGE_AMOUNT_2 = config['REQUEST_LISTENER']['next_stage_amount_2'] # Hacer un for de las etapas anteriores
+
+NEXT_STAGE_NAME = config['REQUEST_LISTENER']['next_stage_name'] # Hacer un for de las etapas anteriores
+NEXT_STAGE_NAME_2 = config['REQUEST_LISTENER']['next_stage_name_2'] # Hacer un for de las etapas anteriores
+
 
 aux_client_id = 'generic_client_id'
 
@@ -29,10 +41,22 @@ class RequestListener:
 
         self.aux_counter = 0
 
+    def router(self, message):
+        if message['type'] == 'control':
+            return [CONTROL_ROUTE_KEY]
+        stage_1_routing_key = f'{NEXT_STAGE_NAME}-{utils.hash_fields(message, HASHING_ATTRIBUTES) % NEXT_STAGE_AMOUNT}'
+        stage_2_routing_key = f'{NEXT_STAGE_NAME_2}-{utils.hash_fields(message, HASHING_ATTRIBUTES_2) % NEXT_STAGE_AMOUNT_2}'
+        return [stage_1_routing_key, stage_2_routing_key]
+        
+
     def connection_handler(self, accept_socket):
         try:
-            self.entry_input = middleware.TCPChannelFilter(RABBIT_HOST, accept_socket, OUTPUT_QUEUE, self.entry_recv_callback)
-            self.entry_ouput = middleware.ChannelTCPFilter(RABBIT_HOST, INPUT_QUEUE, accept_socket, self.answers_callback)
+            # self.entry_input = middleware.TCPChannelFilter(RABBIT_HOST, accept_socket, OUTPUT_QUEUE, self.entry_recv_callback)
+            # self.entry_ouput = middleware.ChannelTCPFilter(RABBIT_HOST, INPUT_QUEUE, accept_socket, self.answers_callback)
+            # def __init__(self, middleware_host, socket, output_exchange, output_route_key_gen, filter_func):
+            self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, self.router, self.entry_recv_callback)
+            # def __init__(self, middleware_host, input_exchange, input_route_key, control_route_key, socket, filter_func):
+            self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, NODE_ID, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             
             logging.info('Receiving entries')
             self.entry_input.run()

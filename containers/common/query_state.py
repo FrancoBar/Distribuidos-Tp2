@@ -122,6 +122,20 @@ class QueryState:
     def __str__(self):
             return 'Id: ' + str(self.id) + '\nMsgTable: ' + str(self.message_table) + '\nQueries: ' + str(self.queries)
 
+
+# middleware
+# constructor(con reconstruccion)
+
+# llega_msg
+# get_state(query_id) => {}
+# is_already_received(origin, id_msg)
+# delete(query_id)
+# callback:
+#     return {origen, id_msg}
+# commit(origin, id_msg, query_id, valor)
+#
+# origin, id_recv, id_send, query_id,[video_id, RU]
+
 state = QueryState('./storage/')
 # state.put('cliente1', 'RU', 89)
 # state.commit('cliente1', 1, 20)

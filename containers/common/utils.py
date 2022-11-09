@@ -1,5 +1,6 @@
 import os
 import logging
+import hashlib
 from configparser import ConfigParser
 
 def initialize_config():
@@ -35,3 +36,13 @@ def clear_all_files(directory):
             os.unlink(os.path.join(root, f))
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
+
+def _hash_string(string_to_hash):
+    return int(hashlib.sha512(string_to_hash.encode()).hexdigest(), 16)
+
+
+def hash_fields(message, hashing_attributes):
+        hashing_string = ''
+        for attribute in hashing_attributes: # Extends to more than 2 receiving ends
+            hashing_string += f"-{message[attribute]}"
+        return _hash_string(hashing_string)

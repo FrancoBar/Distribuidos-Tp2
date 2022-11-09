@@ -48,9 +48,6 @@ class MaxDayFilter:
         return {'type':'control', 'case':'eof'}
 
     def filter_max_date(self, input_message, client_id):
-        if not (client_id in self.clients_dates_views):
-            self.clients_dates_views[client_id] = {}
-            self.max_date[client_id] = [None, 0]
         client_dictionary = self.clients_dates_views[client_id]
 
         temp = time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')
@@ -69,6 +66,9 @@ class MaxDayFilter:
 
     def process_received_message(self, input_message):
         client_id = aux_client_id
+        if not (client_id in self.clients_dates_views):
+            self.clients_dates_views[client_id] = {}
+            self.max_date[client_id] = [None, 0]
         if input_message['type'] == 'data':
             return self.filter_max_date(input_message, client_id)
         else:

@@ -27,6 +27,7 @@ class RequestListener:
         self.entry_ouput = None
         self.server = server.Server(PORT, 1, self.connection_handler)
 
+        self.aux_counter = 0
 
     def connection_handler(self, accept_socket):
         try:
@@ -47,7 +48,6 @@ class RequestListener:
 
     def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
-            # logging.error('VOY A ENVIAR UN EOF AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
             self.entry_input.stop()
         return input_message
 
@@ -58,13 +58,14 @@ class RequestListener:
                 if not (client_id in self.clients_received_eofs):
                     self.clients_received_eofs[client_id] = 0
                 self.clients_received_eofs[client_id] += 1
+                self.aux_counter += 1
                 if self.clients_received_eofs[client_id] != FLOWS_AMOUNT:
                     return None
                 else:
                     del self.clients_received_eofs[client_id]
             else:
                 return None
-        
+        logging.warning(f"BORRAR received message {input_message}")
         return input_message
 
     def run(self):

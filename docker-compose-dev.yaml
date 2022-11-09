@@ -59,8 +59,8 @@ services:
       - .data/config.ini:/root/config.ini
     environment:
       - PYTHONUNBUFFERED=1
-      - COPIES=2
-    scale: 2
+      - COPIES=1
+    scale: 1
 
   thumbnail_downloader:
     build:
@@ -74,8 +74,8 @@ services:
       - .data/config.ini:/root/config.ini
     environment:
       - PYTHONUNBUFFERED=1
-      - COPIES=2
-    scale: 2
+      - COPIES=1
+    scale: 1
 
   max_day_filter:
     build:
@@ -90,8 +90,8 @@ services:
       - .data/date_files:/date_files
     environment:
       - PYTHONUNBUFFERED=1
-      - COPIES=2
-    scale: 2
+      - COPIES=1
+    scale: 1
 
   max_day_agg:
     build:

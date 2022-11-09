@@ -21,7 +21,7 @@ class TagFilter:
 
 
     def filter_tag(self, input_message):
-        if TARGET_TAG in input_message['tags']: 
+        if TARGET_TAG in input_message['tags']:
             return {k: input_message[k] for k in OUTPUT_COLUMNS}
         return None
 

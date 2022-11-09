@@ -1,4 +1,6 @@
 import json
+import logging
+import sys
 
 PROCESS_LIST_COLUMN='process_list'
 
@@ -12,6 +14,9 @@ def broadcast_copies(base_filter, input_message, id, copies, on_recv=None, on_la
 
     if len(input_message[PROCESS_LIST_COLUMN]) == copies:
         if on_last:
+            # print("Estoy en el on last")
+            # logging.warning("Estoy en el on last")
+            # sys.exit(67)
             return on_last(input_message)
 
         return None

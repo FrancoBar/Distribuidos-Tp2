@@ -44,11 +44,7 @@ class RequestListener:
 
     def connection_handler(self, accept_socket):
         try:
-            # self.entry_input = middleware.TCPChannelFilter(RABBIT_HOST, accept_socket, OUTPUT_QUEUE, self.entry_recv_callback)
-            # self.entry_ouput = middleware.ChannelTCPFilter(RABBIT_HOST, INPUT_QUEUE, accept_socket, self.answers_callback)
-            # def __init__(self, middleware_host, socket, output_exchange, output_route_key_gen, filter_func):
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing.router_two_receivers, self.entry_recv_callback)
-            # def __init__(self, middleware_host, input_exchange, input_route_key, control_route_key, socket, filter_func):
             self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, NODE_ID, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             
             logging.info('Receiving entries')

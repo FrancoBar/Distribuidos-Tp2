@@ -28,7 +28,6 @@ NEXT_STAGE_NAME = config['DUPLICATES_FILTER']['next_stage_name'] # Hacer un for 
     
 class DuplicationFilter:
     def __init__(self):
-        # self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set

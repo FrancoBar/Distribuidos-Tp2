@@ -82,14 +82,15 @@ class _ExchangeQueueOut(_ChannelQueue):
 
     def send(self, message):
         if message and self._open:
-            output_message = json.dumps(message)
-            self._channel.basic_publish(
-            exchange=self._output_exchange,
-            routing_key= self._output_route_key_gen(message),
-            body=output_message,
-            properties=pika.BasicProperties(
-                delivery_mode=2,
-            ))
+            for route_key in self._output_route_key_gen(message):
+                output_message = json.dumps(message)
+                self._channel.basic_publish(
+                exchange=self._output_exchange,
+                routing_key=route_key,
+                body=output_message,
+                properties=pika.BasicProperties(
+                    delivery_mode=2,
+                ))
 
     def _on_message_callback(self, ch, method, properties, body):
         raise Error("Not implemented for _ExchangeQueueOut")

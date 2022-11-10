@@ -22,7 +22,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['REQUEST_LISTENER']['port'])
 FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
-PREVIOUS_STAGE_AMOUNT = "asdasdas" # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['REQUEST_LISTENER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT = config['REQUEST_LISTENER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT_2 = config['REQUEST_LISTENER']['next_stage_amount_2'] # Hacer un for de las etapas anteriores
 

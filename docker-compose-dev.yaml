@@ -12,70 +12,71 @@ services:
       retries: 10
       start_period: 50s
     environment:
+      - NODE_ID=0
       - RABBITMQ_LOG_LEVELS=error
 
-  # client:
-  #   container_name: client
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
-  #   restart: on-failure
+  client:
+    container_name: client
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=0
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    restart: on-failure
 
-  # request_listener:
-  #   container_name: request_listener
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: request_listener/Dockerfile
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
+  request_listener:
+    container_name: request_listener
+    build:
+      context: ./containers/
+      dockerfile: request_listener/Dockerfile
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
 
-  # all_countries_agg:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: all_countries_agg/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/id_country_files:/id_country_files
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - COPIES=2
-  #   scale: 2
+  all_countries_agg:
+    build:
+      context: ./containers/
+      dockerfile: all_countries_agg/Dockerfile
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/id_country_files:/id_country_files
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
 
-  # thumbnail_downloader:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: thumbnail_downloader/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - COPIES=2
-  #   scale: 2
+  thumbnail_downloader:
+    build:
+      context: ./containers/
+      dockerfile: thumbnail_downloader/Dockerfile
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
 
   # max_day_filter:
   #   build:
@@ -89,9 +90,8 @@ services:
   #     - .data/config.ini:/root/config.ini
   #     - .data/date_files:/date_files
   #   environment:
+  #     - NODE_ID=0
   #     - PYTHONUNBUFFERED=1
-  #     - COPIES=2
-  #   scale: 2
 
   # max_day_agg:
   #   build:
@@ -104,123 +104,8 @@ services:
   #   volumes:
   #     - .data/config.ini:/root/config.ini
   #   environment:
+  #     - NODE_ID=0
   #     - PYTHONUNBUFFERED=1
-
-  # adaptor1:
-  #   container_name: adaptor_1
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: adaptor1-2/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - SERVICE_NAME=ADAPTOR_1
-  #     - PYTHONUNBUFFERED=1
-
-  # adaptor2:
-  #   container_name: adaptor_2
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: adaptor1-2/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - SERVICE_NAME=ADAPTOR_2
-  #     - PYTHONUNBUFFERED=1
-
-  test_exchange_input:
-    container_name: test_exchange_input
-    build:
-      context: ./containers/
-      dockerfile: test_exchange_input/Dockerfile
-    restart: on-failure
-    depends_on:
-      - test_exex
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-
-  test_exex:
-    container_name: test_exex
-    build:
-      context: ./containers/
-      dockerfile: test_exex/Dockerfile
-    restart: on-failure
-    depends_on:
-      - test_extcp
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-
-  test_extcp:
-    container_name: test_extcp
-    build:
-      context: ./containers/
-      dockerfile: test_extcp/Dockerfile
-    restart: on-failure
-    depends_on:
-      - test_tcpex
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - SERVER_HOST=test_tcpex
-      - SERVER_PORT=7654
-      - PYTHONUNBUFFERED=1
-
-  test_tcpex:
-    container_name: test_tcpex
-    build:
-      context: ./containers/
-      dockerfile: test_tcpex/Dockerfile
-    restart: on-failure
-    depends_on:
-      - test_exchange_output_0
-      - test_exchange_output_1
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - SERVER_PORT=7654
-      - PYTHONUNBUFFERED=1
-
-  test_exchange_output_0:
-    container_name: test_exchange_output_0
-    build:
-      context: ./containers/
-      dockerfile: test_exchange_output/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-      - ID=0
-
-  test_exchange_output_1:
-    container_name: test_exchange_output_1
-    build:
-      context: ./containers/
-      dockerfile: test_exchange_output/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-      - ID=1
 
   # tag_filter:
   #   container_name: tag_filter
@@ -234,6 +119,7 @@ services:
   #   volumes:
   #     - .data/config.ini:/root/config.ini
   #   environment:
+  #     - NODE_ID=0
   #     - PYTHONUNBUFFERED=1
   
   # duplicates_filter:
@@ -248,5 +134,4 @@ services:
   #     - .data/config.ini:/root/config.ini
   #     - .data/id_duplicate_files:/id_duplicate_files
   #   environment:
-  #     - COPIES=1
-  #   scale: 1
+  #     - NODE_ID=0

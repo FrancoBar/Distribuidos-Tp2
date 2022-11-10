@@ -5,6 +5,7 @@ import fcntl
 from common import broadcast_copies
 from common import middleware
 from common import utils
+from common import routing
 
 INVALID_AMOUNT = -1
 
@@ -15,19 +16,29 @@ config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
+
+
 RABBIT_HOST = config['RABBIT']['address']
-INPUT_QUEUE  = config['ALL_COUNTRIES_AGG']['input_queue']
-OUTPUT_QUEUE = config['ALL_COUNTRIES_AGG']['output_queue']
-OUTPUT_COLUMNS = config['ALL_COUNTRIES_AGG']['output_columns'].split(',') 
-MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
-STORAGE = config['ALL_COUNTRIES_AGG']['storage']
-# amount_countries = INVALID_AMOUNT
+INPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['input_exchange']
+OUTPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['output_exchange']
+OUTPUT_COLUMNS = config['ALL_COUNTRIES_AGG']['output_columns'].split(',')
+HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split(',')
+NODE_ID = config['ALL_COUNTRIES_AGG']['node_id']
+CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
+PORT = int(config['ALL_COUNTRIES_AGG']['port'])
+FLOWS_AMOUNT = int(config['ALL_COUNTRIES_AGG']['flows_amount'])
+
+PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount'] # Hacer un for de las etapas anteriores
+NEXT_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['next_stage_amount'] # Hacer un for de las etapas anteriores
+NEXT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['next_stage_name'] # Hacer un for de las etapas anteriores
 
 aux_client_id = 'generic_client_id'
 
 class CountriesAmountFilter:
     def __init__(self):
-        self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
+        # self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}

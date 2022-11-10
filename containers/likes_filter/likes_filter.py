@@ -1,6 +1,7 @@
 import time
 from common import middleware
 from common import utils
+from common import routing
 import logging
 
 config = utils.initialize_config()
@@ -8,15 +9,25 @@ LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
 RABBIT_HOST = config['RABBIT']['address']
-INPUT_QUEUE  = config['LIKES_FILTER']['input_queue']
-OUTPUT_QUEUE = config['LIKES_FILTER']['output_queue']
+INPUT_EXCHANGE = config['LIKES_FILTER']['input_exchange']
+OUTPUT_EXCHANGE = config['LIKES_FILTER']['output_exchange']
 OUTPUT_COLUMNS = config['LIKES_FILTER']['output_columns'].split(',')
-LIKES_MIN =  int(config['LIKES_FILTER']['min_likes'])
+HASHING_ATTRIBUTES = config['LIKES_FILTER']['hashing_attributes'].split(',')
+NODE_ID = config['LIKES_FILTER']['node_id']
+CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
+PORT = int(config['LIKES_FILTER']['port'])
+FLOWS_AMOUNT = int(config['LIKES_FILTER']['flows_amount'])
+
+PREVIOUS_STAGE_AMOUNT = config['LIKES_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
+NEXT_STAGE_AMOUNT = config['LIKES_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
+NEXT_STAGE_NAME = config['LIKES_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
 
 
 class LikesFilter:
     def __init__(self):
-        self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
+        # self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
 

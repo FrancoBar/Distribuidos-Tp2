@@ -32,10 +32,8 @@ class DuplicationFilter:
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
 
     def filter_duplicates(self, input_message):
-            # logging.warning(f"BORRAR ENTRE A FILTER DUPLICATES")
             video_id = input_message['video_id']
             title = input_message['title']
             category = input_message['categoryId']
@@ -43,24 +41,14 @@ class DuplicationFilter:
             if not (client_id in self.clients_sent_videos):
                 self.clients_sent_videos[client_id] = set()
             client_set = self.clients_sent_videos[client_id]
-            # video_tuple = (video_id, title, category)
             video_tuple = f"{video_id},{title},{category}"
-            # if not (video_tuple in self.clients_sent_videos):
             if not (video_tuple in client_set):
-                client_set.add(video_tuple) #BORRAR COMENTARIO: en caso de que falle usar un string con los datos concatenados
-                # self.clients_sent_videos[client_id].add(video_tuple) #BORRAR COMENTARIO: en caso de que falle usar un string con los datos concatenados
+                client_set.add(video_tuple)
                 input_message['case']='unique_pair'
-                # logging.warning(f"BORRAR {client_set}")
                 return {k: input_message[k] for k in OUTPUT_COLUMNS}
             else:
                 return None
 
-    def _on_last_eof(self, input_message):
-        # utils.clear_all_files(STORAGE)
-        print("SOY _on_last_eof")
-        return {'type':'control', 'case':'eof'}
-
-    #BORRAR: ver si creamos una clase abstracta de la que heredan todas las clases de 
     def process_control_message(self, input_message):
         client_id = input_message['client_id']
 

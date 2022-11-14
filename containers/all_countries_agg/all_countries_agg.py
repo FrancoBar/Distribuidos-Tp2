@@ -39,30 +39,9 @@ class CountriesAmountFilter:
     def __init__(self):
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'ALL_COUNTRIES_AGG-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
         self.clients_countries_amount = {} # key: client_id, value: countries_amount
-
-    # def _on_recv_eof(self, input_message):
-    #     # client_id = aux_client_id
-    #     client_id = input_message['client_id']
-    #     if client_id in self.clients_countries_amount:
-    #         del self.clients_countries_amount[client_id]
-    #     if client_id in self.clients_countries_per_day:
-    #         del self.clients_countries_per_day[client_id]
-    
-    #     # del self.clients_max_day[client_id]
-    #     return None
-
-    # def _on_last_eof(self, input_message):
-    #     return {'type':'control', 'case':'eof'}
-
-    # def _on_recv_config(self, input_message):
-    #     # client_id = aux_client_id
-    #     client_id = input_message['client_id']
-    #     self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
-    #     return None
 
     def process_control_message(self, input_message):
         client_id = input_message['client_id']
@@ -80,11 +59,8 @@ class CountriesAmountFilter:
             return input_message
 
     def all_countries_agg(self, input_message):
-        # client_id = aux_client_id
         client_id = input_message['client_id']
         client_countries_amount = self.clients_countries_amount[client_id]
-        # if not (client_id in self.clients_countries_per_day):
-        #     self.clients_countries_per_day[client_id] = {}
         client_trending_days_dict = self.clients_countries_per_day[client_id]
 
         temp=time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')

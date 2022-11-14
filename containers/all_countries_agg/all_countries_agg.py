@@ -34,11 +34,21 @@ NEXT_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['next_stage_amount'] # Hacer un 
 NEXT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['next_stage_name'] # Hacer un for de las etapas anteriores
 
 # aux_client_id = 'generic_client_id'
+stages_rounting_data = []
+
+
+# next_stages_names = stage_data["next_stage_name"]
+# hashing_attributes = stage_data["hashing_attributes"]
+# next_stage_amount = stage_data["next_stage_amount"]
+
+
+def router(message):
+    return routing.router_iter(message, CONTROL_ROUTE_KEY, stages_rounting_data)
 
 class CountriesAmountFilter:
     def __init__(self):
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'ALL_COUNTRIES_AGG-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
         self.clients_countries_amount = {} # key: client_id, value: countries_amount

@@ -19,9 +19,9 @@ PORT = int(config['LIKES_FILTER']['port'])
 FLOWS_AMOUNT = int(config['LIKES_FILTER']['flows_amount'])
 LIKES_MIN =  int(config['LIKES_FILTER']['min_likes'])
 
-PREVIOUS_STAGE_AMOUNT = config['LIKES_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['LIKES_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['LIKES_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['LIKES_FILTER']['previous_stage_amount']
+NEXT_STAGE_AMOUNT = config['LIKES_FILTER']['next_stage_amount']
+NEXT_STAGE_NAME = config['LIKES_FILTER']['next_stage_name']
 
 
 class LikesFilter:
@@ -42,15 +42,30 @@ class LikesFilter:
         
         return None
 
-    def process_received_message(self, input_message):
-        if input_message['type'] == 'control':
+    def process_control_message(self, input_message):
+        client_id = input_message['client_id']
+        if input_message['case'] == 'eof':
+            self.clients_received_eofs[client_id] += 1
+            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
+                del self.clients_received_eofs[client_id]
+                return input_message
+        else:
             return input_message
+                
+        return None
 
-        # If not eof
-        return self.filter_likes(input_message)
+    def process_received_message(self, input_message):
+        client_id = input_message['client_id']
+        if not (client_id in self.clients_received_eofs):
+            self.clients_received_eofs[client_id] = 0
+        processing_result = None
+        if input_message['type'] == 'control':
+            processing_result = self.process_control_message(input_message)
+        else:
+            processing_result = self.filter_likes(input_message)
 
-        # If client eof
-            # volar todo y enviar
+        if processing_result != None:
+            self.middleware.send(processing_result)
 
     def start_received_messages_processing(self):
         self.middleware.run()

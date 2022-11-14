@@ -34,11 +34,12 @@ class DuplicationFilter:
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()
 
-    def filter_duplicates(self, input_message, client_id):
+    def filter_duplicates(self, input_message):
             # logging.warning(f"BORRAR ENTRE A FILTER DUPLICATES")
             video_id = input_message['video_id']
             title = input_message['title']
             category = input_message['categoryId']
+            client_id = input_message['client_id']
             if not (client_id in self.clients_sent_videos):
                 self.clients_sent_videos[client_id] = set()
             client_set = self.clients_sent_videos[client_id]
@@ -60,27 +61,33 @@ class DuplicationFilter:
         return {'type':'control', 'case':'eof'}
 
     #BORRAR: ver si creamos una clase abstracta de la que heredan todas las clases de 
-    def process_eof(self, input_message, client_id):
-        # if not (client_id in self.clients_received_eofs):
-        #     self.clients_received_eofs[client_id] = 1
-        # else:
-        #     self.clients_received_eofs[client_id] += 1
-            
-        # if self.clients_received_eofs[client_id] == self.previous_stage_size:
-        #     return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, self._on_last_eof)
-        # return None #BORRAR: chequear que retornamos en este caso
+    def process_control_message(self, input_message):
+        client_id = input_message['client_id']
 
-        return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, self._on_last_eof)
+        if input_message['case'] == 'eof':
+            self.clients_received_eofs[client_id] += 1
+            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
+                del self.clients_sent_videos[client_id]
+                del self.clients_received_eofs[client_id]
+                return input_message
+        return None
 
 
     def process_received_message(self, input_message):
-        client_id = 'generic_client_id'
+        client_id = input_message['client_id']
+        message_to_send = None
+
+        if not (client_id in self.clients_received_eofs):
+            self.clients_received_eofs[client_id] = 0
+            self.clients_sent_videos[client_id] = set()
+
         if input_message['type'] == 'data':
-            return self.filter_duplicates(input_message, client_id)
+            message_to_send = self.filter_duplicates(input_message)
         else:
-            if input_message['case'] == 'eof':
-                return self.process_eof(input_message, client_id)
-            return None
+            message_to_send = self.process_control_message(input_message)
+
+        if message_to_send != None:
+            self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):
         self.middleware.run()

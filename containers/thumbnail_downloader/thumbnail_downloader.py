@@ -24,6 +24,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['THUMBNAIL_DOWNLOADER']['port'])
 FLOWS_AMOUNT = int(config['THUMBNAIL_DOWNLOADER']['flows_amount'])
 
+CURRENT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['next_stage_name'] # Hacer un for de las etapas anteriores
@@ -32,7 +33,7 @@ NEXT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['next_stage_name'] # Hacer un f
 
 class ThumbnailsDownloader:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
 

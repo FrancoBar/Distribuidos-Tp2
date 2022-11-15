@@ -44,10 +44,20 @@ class MaxDayAggregator:
                 del self.clients_received_eofs[client_id]
                 del self.max_date[client_id]
                 output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
-                self.middleware.send(output_message)
-                return {'type':'control', 'case':'eof', 'client_id': client_id}
+                # self.middleware.send(output_message)
+                # return {'type':'control', 'case':'eof', 'client_id': client_id}
+                return output_message
         return None
 
+
+# me llega con id i de la etapa anterior
+
+
+# envio j enviando la fecha maxima
+# envio j+1 enviando eof
+# commit
+
+# persisto id
 
     def process_received_message(self, input_message):
         client_id = input_message['client_id']

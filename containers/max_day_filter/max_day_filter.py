@@ -33,7 +33,7 @@ PREVIOUS_STAGE_AMOUNT = config['MAX_DAY_FILTER']['previous_stage_amount'] # Hace
 NEXT_STAGE_AMOUNT = config['MAX_DAY_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_NAME = config['MAX_DAY_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
 
-aux_client_id = 'generic_client_id'
+# aux_client_id = 'generic_client_id'
 
 class MaxDayFilter:
     def __init__(self):
@@ -45,7 +45,7 @@ class MaxDayFilter:
         self.clients_dates_views = {} # key: client_id, value: (key: day, value: views sum)
 
     def _on_recv_eof(self, input_message):
-        client_id = aux_client_id
+        client_id = input_message['client_id']
         output_message = None
         if self.max_date[client_id][0]:
             output_message = {'type':'data', 'date':self.max_date[client_id][0], 'view_count':self.max_date[client_id][1], 'client_id': client_id}
@@ -74,10 +74,15 @@ class MaxDayFilter:
 
 
     def process_received_message(self, input_message):
-        client_id = aux_client_id
+        client_id = input_message['client_id']
+
+        
+
         if not (client_id in self.clients_dates_views):
             self.clients_dates_views[client_id] = {}
             self.max_date[client_id] = [None, 0]
+            self.clients_received_eofs[client_id] = 0
+
         if input_message['type'] == 'data':
             return self.filter_max_date(input_message, client_id)
         else:

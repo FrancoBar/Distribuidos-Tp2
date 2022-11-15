@@ -56,9 +56,11 @@ class LikesFilter:
 
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
+        processing_result = None
+
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
-        processing_result = None
+        
         if input_message['type'] == 'control':
             processing_result = self.process_control_message(input_message)
         else:

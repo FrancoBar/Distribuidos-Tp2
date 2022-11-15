@@ -22,6 +22,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['REQUEST_LISTENER']['port'])
 FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
+CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['REQUEST_LISTENER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT = config['REQUEST_LISTENER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT_2 = config['REQUEST_LISTENER']['next_stage_amount_2'] # Hacer un for de las etapas anteriores
@@ -45,7 +46,7 @@ class RequestListener:
     def connection_handler(self, accept_socket):
         try:
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing.router_two_receivers, self.entry_recv_callback)
-            self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, NODE_ID, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
+            self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             
             logging.info('Receiving entries')
             self.entry_input.run()

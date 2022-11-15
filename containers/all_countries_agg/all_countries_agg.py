@@ -29,6 +29,7 @@ PORT = int(config['ALL_COUNTRIES_AGG']['port'])
 FLOWS_AMOUNT = int(config['ALL_COUNTRIES_AGG']['flows_amount'])
 MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 
+CURRENT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['next_stage_name'] # Hacer un for de las etapas anteriores
@@ -47,7 +48,7 @@ def router(message):
 
 class CountriesAmountFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'ALL_COUNTRIES_AGG-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}

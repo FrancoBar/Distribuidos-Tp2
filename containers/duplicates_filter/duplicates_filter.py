@@ -22,13 +22,14 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['DUPLICATES_FILTER']['port'])
 FLOWS_AMOUNT = int(config['DUPLICATES_FILTER']['flows_amount'])
 
+CURRENT_STAGE_NAME = config['DUPLICATES_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['DUPLICATES_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT = config['DUPLICATES_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_NAME = config['DUPLICATES_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
     
 class DuplicationFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received

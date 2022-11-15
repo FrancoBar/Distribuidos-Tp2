@@ -29,6 +29,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['MAX_DAY_FILTER']['port'])
 FLOWS_AMOUNT = int(config['MAX_DAY_FILTER']['flows_amount'])
 
+CURRENT_STAGE_NAME = config['MAX_DAY_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['MAX_DAY_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_AMOUNT = config['MAX_DAY_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_NAME = config['MAX_DAY_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
@@ -37,7 +38,7 @@ NEXT_STAGE_NAME = config['MAX_DAY_FILTER']['next_stage_name'] # Hacer un for de 
 
 class MaxDayFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'MAX_DAY_FILTER-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.previous_stage_size = self.middleware.get_previous_stage_size()

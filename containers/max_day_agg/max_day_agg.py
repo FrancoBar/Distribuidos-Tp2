@@ -27,9 +27,7 @@ class MaxDayAggregator:
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
         self.max_date = {} # key: client_id, value: [None, 0]
-
 
     def filter_max_agg(self, input_message, client_id):
         amount_new = int(input_message['view_count'])
@@ -38,23 +36,34 @@ class MaxDayAggregator:
             self.max_date[client_id][1] = amount_new
         return None
 
+    def process_control_message(self, input_message):
+        client_id = input_message['client_id']
+        if input_message['case'] == 'eof':
+            self.clients_received_eofs[client_id] += 1
+            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
+                del self.clients_received_eofs[client_id]
+                del self.max_date[client_id]
+                output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
+                self.middleware.send(output_message)
+                return {'type':'control', 'case':'eof', 'client_id': client_id}
+        return None
+
 
     def process_received_message(self, input_message):
-        client_id = 'generic_client_id'
+        client_id = input_message['client_id']
+        message_to_send = None
+
         if not (client_id in self.max_date):
             self.max_date[client_id] = [None, 0]
+            self.clients_received_eofs[client_id] = 0
+
         if input_message['type'] == 'data':
-            return self.filter_max_agg(input_message, client_id)
+            self.filter_max_agg(input_message, client_id)
         else:
-            if input_message['case'] != 'eof':
-                return None
+            message_to_send = self.process_control_message(input_message)
 
-            output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
-            self.middleware.send(output_message)
-            del self.max_date[client_id]
-
-            return {'type':'control', 'case':'eof', 'client_id': client_id}
-
+        if message_to_send != None:
+            self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):
         self.middleware.run()

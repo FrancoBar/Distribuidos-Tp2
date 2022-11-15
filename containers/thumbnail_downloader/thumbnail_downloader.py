@@ -28,15 +28,13 @@ PREVIOUS_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['previous_stage_amount'] 
 NEXT_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'] # Hacer un for de las etapas anteriores
 NEXT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['next_stage_name'] # Hacer un for de las etapas anteriores
 
+
+
 class ThumbnailsDownloader:
     def __init__(self):
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
-
-    def _on_last_eof(self, input_message):
-        return {'type':'control', 'case':'eof'}
 
     def download_thumbnail(self, input_message):
         try:
@@ -49,16 +47,32 @@ class ThumbnailsDownloader:
             middleware.stop()
         return None
 
+    def process_control_message(self, input_message):
+        client_id = input_message['client_id']
+        if input_message['case'] == 'eof':
+            self.clients_received_eofs[client_id] += 1
+            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
+                del self.clients_received_eofs[client_id]
+                return input_message
+        return None
 
     def process_received_message(self, input_message):
+        client_id = input_message['client_id']
+        message_to_send = None
 
+        # Initialization
+        if not (client_id in self.clients_received_eofs):
+            self.clients_received_eofs[client_id] = 0
+
+        # Message processing       
         if input_message['type'] == 'data':
-            return self.download_thumbnail(input_message)
+            message_to_send = self.download_thumbnail(input_message)
         else:
-            if input_message['case'] == 'eof':
-                return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, None, self._on_last_eof)
-            
-            return None
+            message_to_send = self.process_control_message(input_message)
+
+        # Message sending
+        if message_to_send != None:
+            self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):
         self.middleware.run()

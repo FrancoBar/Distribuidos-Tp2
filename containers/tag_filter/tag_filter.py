@@ -19,9 +19,9 @@ FLOWS_AMOUNT = int(config['TAG_FILTER']['flows_amount'])
 TARGET_TAG =  config['TAG_FILTER']['target_tag']
 
 CURRENT_STAGE_NAME = config['TAG_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['TAG_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['TAG_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['TAG_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['TAG_FILTER']['previous_stage_amount']
+NEXT_STAGE_AMOUNTS = config['TAG_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['TAG_FILTER']['next_stage_name'].split(',')
 
 
 class TagFilter:

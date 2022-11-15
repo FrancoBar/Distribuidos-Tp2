@@ -23,9 +23,9 @@ PORT = int(config['DUPLICATES_FILTER']['port'])
 FLOWS_AMOUNT = int(config['DUPLICATES_FILTER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['DUPLICATES_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['DUPLICATES_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['DUPLICATES_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['DUPLICATES_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['DUPLICATES_FILTER']['previous_stage_amount']
+NEXT_STAGE_AMOUNTS = config['DUPLICATES_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['DUPLICATES_FILTER']['next_stage_name'].split(',')
     
 class DuplicationFilter:
     def __init__(self):

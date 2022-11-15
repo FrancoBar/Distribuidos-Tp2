@@ -25,9 +25,9 @@ PORT = int(config['THUMBNAIL_DOWNLOADER']['port'])
 FLOWS_AMOUNT = int(config['THUMBNAIL_DOWNLOADER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['next_stage_name'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['previous_stage_amount']
+NEXT_STAGE_AMOUNTS = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['THUMBNAIL_DOWNLOADER']['next_stage_name'].split(',')
 
 
 

@@ -23,12 +23,9 @@ PORT = int(config['REQUEST_LISTENER']['port'])
 FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['REQUEST_LISTENER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['REQUEST_LISTENER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT_2 = config['REQUEST_LISTENER']['next_stage_amount_2'] # Hacer un for de las etapas anteriores
-
-NEXT_STAGE_NAME = config['REQUEST_LISTENER']['next_stage_name'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME_2 = config['REQUEST_LISTENER']['next_stage_name_2'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['REQUEST_LISTENER']['previous_stage_amount']
+NEXT_STAGE_AMOUNTS = config['REQUEST_LISTENER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
 
 aux_client_id = 'generic_client_id'

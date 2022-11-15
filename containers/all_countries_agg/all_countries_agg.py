@@ -30,9 +30,9 @@ FLOWS_AMOUNT = int(config['ALL_COUNTRIES_AGG']['flows_amount'])
 MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 
 CURRENT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['next_stage_name'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount']
+NEXT_STAGE_AMOUNTS = config['ALL_COUNTRIES_AGG']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['ALL_COUNTRIES_AGG']['next_stage_name'].split(',')
 
 # aux_client_id = 'generic_client_id'
 stages_rounting_data = []
@@ -41,7 +41,7 @@ stages_rounting_data = []
 # next_stages_names = stage_data["next_stage_name"]
 # hashing_attributes = stage_data["hashing_attributes"]
 # next_stage_amount = stage_data["next_stage_amount"]
-
+for i in range(len())
 
 def router(message):
     return routing.router_iter(message, CONTROL_ROUTE_KEY, stages_rounting_data)

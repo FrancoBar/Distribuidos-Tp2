@@ -19,9 +19,9 @@ PORT = int(config['MAX_AGG_FILTER']['port'])
 FLOWS_AMOUNT = int(config['MAX_AGG_FILTER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['MAX_AGG_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['MAX_AGG_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['MAX_AGG_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['MAX_AGG_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
+PREVIOUS_STAGE_AMOUNT = config['MAX_AGG_FILTER']['previous_stage_amount']
+NEXT_STAGE_AMOUNT = config['MAX_AGG_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAME = config['MAX_AGG_FILTER']['next_stage_name'].split(',')
 
 class MaxDayAggregator:
     def __init__(self):

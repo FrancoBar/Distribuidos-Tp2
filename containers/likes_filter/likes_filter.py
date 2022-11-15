@@ -21,8 +21,8 @@ LIKES_MIN =  int(config['LIKES_FILTER']['min_likes'])
 
 CURRENT_STAGE_NAME = config['LIKES_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['LIKES_FILTER']['previous_stage_amount']
-NEXT_STAGE_AMOUNT = config['LIKES_FILTER']['next_stage_amount']
-NEXT_STAGE_NAME = config['LIKES_FILTER']['next_stage_name']
+NEXT_STAGE_AMOUNTS = config['LIKES_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['LIKES_FILTER']['next_stage_name'].split(',')
 
 
 class LikesFilter:

@@ -22,7 +22,6 @@ RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['input_exchange']
 OUTPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['output_exchange']
 OUTPUT_COLUMNS = config['ALL_COUNTRIES_AGG']['output_columns'].split(',')
-HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split('|')
 NODE_ID = config['ALL_COUNTRIES_AGG']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['ALL_COUNTRIES_AGG']['port'])
@@ -31,17 +30,18 @@ MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 
 CURRENT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount']
+HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split('|')
 NEXT_STAGE_AMOUNTS = config['ALL_COUNTRIES_AGG']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['ALL_COUNTRIES_AGG']['next_stage_name'].split(',')
 
-# aux_client_id = 'generic_client_id'
 stages_rounting_data = []
 
-
-# next_stages_names = stage_data["next_stage_name"]
-# hashing_attributes = stage_data["hashing_attributes"]
-# next_stage_amount = stage_data["next_stage_amount"]
-for i in range(len())
+for i in range(len(NEXT_STAGE_NAMES)):
+    stages_rounting_data.append({ 
+        "next_stage_name": NEXT_STAGE_NAMES[i], 
+        "hashing_attributes": HASHING_ATTRIBUTES[i].split(','), 
+        "next_stage_amount": int(NEXT_STAGE_AMOUNTS[i])
+    })
 
 def router(message):
     return routing.router_iter(message, CONTROL_ROUTE_KEY, stages_rounting_data)

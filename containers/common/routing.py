@@ -28,3 +28,14 @@ def router_iter(message, control_route_key, next_stages_data): # message, contro
         aux_routing_key = f'{next_stage_name}-{utils.hash_fields(message, hashing_attributes) % next_stage_amount}'
         stage_routing_keys.append(aux_routing_key)
     return stage_routing_keys
+
+
+def generate_routing_function(control_route_key, next_stage_names, hashing_attributes, next_stage_amounts):
+    stages_rounting_data = []
+    for i in range(len(next_stage_names)):
+        stages_rounting_data.append({ 
+            "next_stage_name": next_stage_names[i], 
+            "hashing_attributes": hashing_attributes[i].split(','), 
+            "next_stage_amount": int(next_stage_amounts[i])
+        })
+    return lambda message: router_iter(message, control_route_key, stages_rounting_data)

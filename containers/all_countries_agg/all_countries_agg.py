@@ -34,17 +34,28 @@ HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split('|'
 NEXT_STAGE_AMOUNTS = config['ALL_COUNTRIES_AGG']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['ALL_COUNTRIES_AGG']['next_stage_name'].split(',')
 
-stages_rounting_data = []
 
-for i in range(len(NEXT_STAGE_NAMES)):
-    stages_rounting_data.append({ 
-        "next_stage_name": NEXT_STAGE_NAMES[i], 
-        "hashing_attributes": HASHING_ATTRIBUTES[i].split(','), 
-        "next_stage_amount": int(NEXT_STAGE_AMOUNTS[i])
-    })
+# def generate_routing_function(next_stage_names, hashing_attributes, next_stage_amounts):
+#     stages_rounting_data = []
+#     for i in range(len(NEXT_STAGE_NAMES)):
+#         stages_rounting_data.append({ 
+#             "next_stage_name": next_stage_names[i], 
+#             "hashing_attributes": hashing_attributes[i].split(','), 
+#             "next_stage_amount": int(next_stage_amounts[i])
+#         })
+#     return lambda message: routing.router_iter(message, CONTROL_ROUTE_KEY, stages_rounting_data)
+
+# stages_rounting_data = []
+# for i in range(len(NEXT_STAGE_NAMES)):
+#     stages_rounting_data.append({ 
+#         "next_stage_name": NEXT_STAGE_NAMES[i], 
+#         "hashing_attributes": HASHING_ATTRIBUTES[i].split(','), 
+#         "next_stage_amount": int(NEXT_STAGE_AMOUNTS[i])
+#     })
 
 def router(message):
     return routing.router_iter(message, CONTROL_ROUTE_KEY, stages_rounting_data)
+
 
 class CountriesAmountFilter:
     def __init__(self):

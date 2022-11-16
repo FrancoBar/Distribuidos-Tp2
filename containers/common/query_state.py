@@ -2,6 +2,10 @@ import os
 
 FILE_TYPE = '.csv'
 
+TABLE_BYTE = 't'
+WRITE_BYTE = 'w'
+COMMIT_BYTE = 'c'
+
 class QueryState:
     def __init__(self, storage,read_value, write_value):
         self._storage = storage
@@ -24,24 +28,46 @@ class QueryState:
 
     def _build_query(self, query_name):
         query = {'id':0 , 'msg_table' : {}, 'values' : {}}
-        current_size = 0
-
+        last_commit_size = 0
+        pending_lines = []
         with open(self._storage + query_name, 'r+') as query_file:
             while True:
                 line = query_file.readline()
-                if line == '':
+                if line == '' or '\n' not in line:
+                    query_file.truncate(last_commit_size)
                     break
-                if '\n' not in line:
-                    query_file.truncate(current_size)
-                    break
-                current_size = query_file.tell()
 
-                #ToDo: Check len
-                origin, in_id, out_id, key, value = line[:-1].split(',')
-                query['msg_table'][origin] = in_id
-                query['id'] = int(out_id)
-                self._read_value(query['values'], key, value)
+                log_type = line[0]
+                if log_type == WRITE_BYTE or log_type == TABLE_BYTE:
+                    pending_lines.append(line)
+                elif log_type == COMMIT_BYTE and len(pending_lines) > 0:
+                    last_id = query['id']
+                    update_table = {}
+                    update_value = {}
+                    for pending_line in pending_lines:
+                        try:
+                            if pending_line[0] == TABLE_BYTE:
+                                log_type, origin, in_id, out_id = pending_line[:-1].split(',')
+                                update_table[origin] = in_id
+                                query['id'] = int(out_id)
+                            else:
+                                log_type, key, value = pending_line[:-1].split(',')
+                                update_value[key] = self._read_value(query['values'], key, value)
+                        except ValueError:
+                            query['id'] = last_id
+                            print('Corrupted line')
+                            query_file.truncate(last_commit_size)
+                            break
+                    pending_lines = []
+                    query['values'].update(update_value)
+                    query['msg_table'].update(update_table)
+                    last_commit_size = query_file.tell()
+                else:
+                    print('Corrupted line')
+                    query_file.truncate(last_commit_size)
+                    break
     
+        query['id'] = query['id'] + 1
         return query
 
     def _get_query(self, query_id):
@@ -67,23 +93,31 @@ class QueryState:
             return False
         return (query['msg_table'][origin] == msg_id)
 
-    def commit(self, query_id, origin, msg_id, key, value):
+    def _write(self, query_id, line):
+        with open(self._storage + str(query_id) + FILE_TYPE, 'a') as query_file:
+            query_file.write(line)
+
+    def prepare(self, query_id, origin, msg_id):
         query = self._get_query(query_id)
         out_id = query['id']
-
-        log_entry_header = '{},{},{},{},'.format(origin, msg_id, out_id, key)
-        log_entry_body = self._write_value(query['values'], key, value)
-        with open(self._storage + str(query_id) + FILE_TYPE, 'a') as query_file:
-            query_file.write(log_entry_header + log_entry_body + '\n')
-
+        self._write(query_id, TABLE_BYTE + ',{},{},{}\n'.format(origin, msg_id, out_id))
+        
         query['msg_table'][origin] = msg_id
         query['id'] = out_id + 1
+
+    def write(self, query_id, key, value):
+        query = self._get_query(query_id)
+        out_id = query['id']
+        self._write(query_id, '{},{},{}\n'.format(WRITE_BYTE, key, self._write_value(query['values'], key, value)))
+
+    def commit(self, query_id):
+        self._write(query_id, COMMIT_BYTE + '\n')
 
     def __str__(self):
             return str(self._queries)
 
 def _default_read_value(query, key, value):
-    query[key] = value
+    return value
 
 def _default_write_value(query, key, value):
     return str(value)
@@ -92,14 +126,22 @@ state = QueryState('./storage/', _default_read_value, _default_write_value)
 
 print(state)
 
-state.commit('cliente1', 'origin1', 1, 'key1',20)
-state.commit('cliente1', 'origin1', 2, 'key2',40)
-state.commit('cliente1', 'origin2', 3, 'key1',20)
-state.commit('cliente2', 'origin1', 0, 'key',10)
-state.commit('cliente2', 'origin1', 1, 'key',5)
+# state.prepare('cliente1', 'origin1', 1)
+# state.write('cliente1', 'key1',20)
+# state.write('cliente1', 'key2',40)
+# state.commit('cliente1')
 
-# print(state.get_id('cliente1'), state.get_id('cliente2'))
-# print(state.get_values('cliente1'), state.get_values('cliente2'))
+# state.prepare('cliente1', 'origin1', 2)
+# state.write('cliente1', 'key1',10)
+# state.write('cliente1', 'key3',50)
+# state.commit('cliente1')
+
+# state.prepare('cliente2', 'origin1', 3)
+# state.write('cliente2', 'key4',10)
+# state.commit('cliente2')
+
+print(state.get_id('cliente1'), state.get_id('cliente2'))
+print(state.get_values('cliente1'), state.get_values('cliente2'))
 
 # print(state.is_msg_received('cliente1','origin2', '3'))
 # print(state.is_msg_received('cliente1','origin2', '2'))

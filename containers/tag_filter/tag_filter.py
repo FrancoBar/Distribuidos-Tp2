@@ -23,15 +23,13 @@ PREVIOUS_STAGE_AMOUNT = config['TAG_FILTER']['previous_stage_amount']
 NEXT_STAGE_AMOUNTS = config['TAG_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['TAG_FILTER']['next_stage_name'].split(',')
 
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class TagFilter:
     def __init__(self):
-        # self.middleware = middleware.ChannelChannelFilter(RABBIT_HOST, INPUT_QUEUE, OUTPUT_QUEUE, self.process_received_message)
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-                                                            CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
+                                                            CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
-
 
     def filter_tag(self, input_message):
         if TARGET_TAG in input_message['tags']:

@@ -29,6 +29,8 @@ NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
 aux_client_id = 'generic_client_id'
 
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+
 class RequestListener:
     def __init__(self):
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
@@ -41,7 +43,7 @@ class RequestListener:
 
     def connection_handler(self, accept_socket):
         try:
-            self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing.router_two_receivers, self.entry_recv_callback)
+            self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             
             logging.info('Receiving entries')

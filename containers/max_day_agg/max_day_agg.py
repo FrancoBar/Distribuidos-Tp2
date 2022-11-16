@@ -23,10 +23,12 @@ PREVIOUS_STAGE_AMOUNT = config['MAX_AGG_FILTER']['previous_stage_amount']
 NEXT_STAGE_AMOUNT = config['MAX_AGG_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAME = config['MAX_AGG_FILTER']['next_stage_name'].split(',')
 
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+
 class MaxDayAggregator:
     def __init__(self):
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.max_date = {} # key: client_id, value: [None, 0]
 

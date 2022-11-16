@@ -34,12 +34,9 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 class RequestListener:
     def __init__(self):
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
         self.entry_input = None
         self.entry_ouput = None
         self.server = server.Server(PORT, 1, self.connection_handler)
-
-        self.aux_counter = 0
 
     def connection_handler(self, accept_socket):
         try:
@@ -70,7 +67,6 @@ class RequestListener:
                 if not (client_id in self.clients_received_eofs):
                     self.clients_received_eofs[client_id] = 0
                 self.clients_received_eofs[client_id] += 1
-                self.aux_counter += 1
                 if self.clients_received_eofs[client_id] != FLOWS_AMOUNT:
                     return None
                 else:

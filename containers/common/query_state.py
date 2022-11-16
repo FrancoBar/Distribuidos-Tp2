@@ -51,17 +51,14 @@ class QueryState:
                                 log_type, origin, in_id, out_id = args
                                 update_table[origin] = in_id
                                 query['id'] = int(out_id)
-                            elif len(args) == 6:
-                                log_type, origin, in_id, out_id, key, value = args
+                            else:
+                                log_type, origin, in_id, out_id, key, *value = args
                                 update_table[origin] = in_id
                                 query['id'] = int(out_id)
                                 update_value[key] = self._read_value(query['values'], key, value)
-                            else:
-                                print(len(args))
-                                pass          
+
                     except ValueError:
                         query['id'] = last_id
-                        print('Corrupted line')
                         query_file.truncate(last_commit_size)
                         break
                     pending_lines = []
@@ -69,7 +66,6 @@ class QueryState:
                     query['msg_table'].update(update_table)
                     last_commit_size = query_file.tell()
                 else:
-                    print('Corrupted line')
                     query_file.truncate(last_commit_size)
                     break
     
@@ -125,7 +121,7 @@ class QueryState:
             return str(self._queries)
 
 def _default_read_value(query, key, value):
-    return value
+    return value[0]
 
 def _default_write_value(query, key, value):
     return str(value)

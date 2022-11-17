@@ -52,6 +52,7 @@ class CountriesAmountFilter:
             else:
                 return None
         else:
+            print("BORRAR setupee la configuracion")
             self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
             return input_message
 

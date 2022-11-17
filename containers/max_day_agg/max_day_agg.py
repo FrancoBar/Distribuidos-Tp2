@@ -11,7 +11,6 @@ utils.initialize_log(LOGGING_LEVEL)
 RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['MAX_AGG_FILTER']['input_exchange']
 OUTPUT_EXCHANGE = config['MAX_AGG_FILTER']['output_exchange']
-OUTPUT_COLUMNS = config['MAX_AGG_FILTER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['MAX_AGG_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['MAX_AGG_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']

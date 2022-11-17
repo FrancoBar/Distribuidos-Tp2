@@ -83,64 +83,64 @@ services:
       - PYTHONUNBUFFERED=1
       - COPIES=1
 
-  # max_day_filter:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: max_day_filter/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #     - .data/date_files:/date_files
-  #   environment:
-  #     - NODE_ID=0
-  #     - PYTHONUNBUFFERED=1
-  #     - COPIES=1
+  max_day_filter:
+    build:
+      context: ./containers/
+      dockerfile: max_day_filter/Dockerfile
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/date_files:/date_files
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      - COPIES=1
 
-  # max_day_agg:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: max_day_agg/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - NODE_ID=0
-  #     - PYTHONUNBUFFERED=1
-  #     - COPIES=1
+  max_day_agg:
+    build:
+      context: ./containers/
+      dockerfile: max_day_agg/Dockerfile
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      - COPIES=1
 
-  # tag_filter:
-  #   container_name: tag_filter
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: tag_filter/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - NODE_ID=0
-  #     - PYTHONUNBUFFERED=1
-  #     - COPIES=1
+  tag_filter:
+    container_name: tag_filter
+    build:
+      context: ./containers/
+      dockerfile: tag_filter/Dockerfile
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      - COPIES=1
   
-  # duplicates_filter:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: duplicates_filter/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #     - .data/id_duplicate_files:/id_duplicate_files
-  #   environment:
-  #     - NODE_ID=0
-  #     - COPIES=1
+  duplicates_filter:
+    build:
+      context: ./containers/
+      dockerfile: duplicates_filter/Dockerfile
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/id_duplicate_files:/id_duplicate_files
+    environment:
+      - NODE_ID=0
+      - COPIES=1

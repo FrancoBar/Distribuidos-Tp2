@@ -7,7 +7,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - SERVICES=test_target_1,test_target_2
+      - SERVICES=test_target_1,test_target_2,test_target_3
 
   test_target_1:
     container_name: test_target_1
@@ -16,6 +16,7 @@ services:
       dockerfile: test_target/Dockerfile
     environment:
       - FAIL_AFTER=3
+      - SKIP_AFTER=0
 
   test_target_2:
     container_name: test_target_2
@@ -24,6 +25,16 @@ services:
       dockerfile: test_target/Dockerfile
     environment:
       - FAIL_AFTER=5
+      - SKIP_AFTER=0
+
+  test_target_3:
+    container_name: test_target_3
+    build:
+      context: ./containers/
+      dockerfile: test_target/Dockerfile
+    environment:
+      - FAIL_AFTER=0
+      - SKIP_AFTER=6
 
 # services:
 #   rabbitmq:

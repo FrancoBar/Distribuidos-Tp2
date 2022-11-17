@@ -22,14 +22,22 @@ PORT = int(config['REQUEST_LISTENER']['port'])
 FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['REQUEST_LISTENER']['previous_stage_amount']
+PREVIOUS_STAGES_AMOUNTS = config['REQUEST_LISTENER']['previous_stage_amount'].split(',')
 NEXT_STAGE_AMOUNTS = config['REQUEST_LISTENER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
 
 aux_client_id = 'generic_client_id'
 
+previous_stages_nodes = 0
+
+for amount in PREVIOUS_STAGES_AMOUNTS:
+    previous_stages_nodes += int(amount)
+
+
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+
+aux_client_id = 'generic_client_id'
 
 class RequestListener:
     def __init__(self):
@@ -58,23 +66,21 @@ class RequestListener:
     def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
             self.entry_input.stop()
-        return input_message
+        input_message['client_id'] = aux_client_id
+        self.entry_input.send(input_message)
 
     def answers_callback(self, input_message):
-        client_id = aux_client_id
+        client_id = input_message['client_id']
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':
                 if not (client_id in self.clients_received_eofs):
                     self.clients_received_eofs[client_id] = 0
                 self.clients_received_eofs[client_id] += 1
-                if self.clients_received_eofs[client_id] != FLOWS_AMOUNT:
-                    return None
-                else:
+                if self.clients_received_eofs[client_id] == previous_stages_nodes:
+                    self.entry_ouput.send(input_message)
                     del self.clients_received_eofs[client_id]
-            else:
-                return None
-        logging.warning(f"BORRAR received message {input_message}")
-        return input_message
+        else:
+            self.entry_ouput.send(input_message)
 
     def run(self):
         self.server.run()

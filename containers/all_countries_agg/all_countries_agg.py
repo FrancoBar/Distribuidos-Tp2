@@ -16,8 +16,6 @@ config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
-
-
 RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['input_exchange']
 OUTPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['output_exchange']

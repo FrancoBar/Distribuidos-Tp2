@@ -1,180 +1,196 @@
 services:
-  rabbitmq:
-    build:
-      context: ./containers/rabbitmq
-      dockerfile: Dockerfile
-    ports:
-      - 15672:15672
-    healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 50s
-    environment:
-      - RABBITMQ_LOG_LEVELS=error
-
-  client:
-    container_name: client
+  test_dind:
+    container_name: test_dind
     build:
       context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
+      dockerfile: test_dind/Dockerfile
     volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-    restart: on-failure
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - IMAGE=test_target
 
-  request_listener:
-    container_name: request_listener
+  test_target:
+    container_name: test_target
     build:
       context: ./containers/
-      dockerfile: request_listener/Dockerfile
-    environment:
-      - PYTHONUNBUFFERED=1
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
+      dockerfile: test_target/Dockerfile
+# services:
+#   rabbitmq:
+#     build:
+#       context: ./containers/rabbitmq
+#       dockerfile: Dockerfile
+#     ports:
+#       - 15672:15672
+#     healthcheck:
+#       test: rabbitmq-diagnostics check_port_connectivity
+#       interval: 5s
+#       timeout: 3s
+#       retries: 10
+#       start_period: 50s
+#     environment:
+#       - RABBITMQ_LOG_LEVELS=error
 
-  all_countries_agg:
-    build:
-      context: ./containers/
-      dockerfile: all_countries_agg/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/id_country_files:/id_country_files
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-      - COPIES=2
-    scale: 2
+#   client:
+#     container_name: client
+#     build:
+#       context: ./containers/
+#       dockerfile: client/Dockerfile
+#     environment:
+#       - SERVER_PORT=25555
+#       - SERVER_HOST=request_listener
+#       - PYTHONUNBUFFERED=1
+#     volumes:
+#       - .data/output:/output
+#       - .data/datasets:/datasets
+#       - .data/config.ini:/root/config.ini
+#     depends_on:
+#       - request_listener
+#     links:
+#       - request_listener
+#     restart: on-failure
 
-  thumbnail_downloader:
-    build:
-      context: ./containers/
-      dockerfile: thumbnail_downloader/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
-      - COPIES=2
-    scale: 2
+#   request_listener:
+#     container_name: request_listener
+#     build:
+#       context: ./containers/
+#       dockerfile: request_listener/Dockerfile
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
 
-  max_day_filter:
-    build:
-      context: ./containers/
-      dockerfile: max_day_filter/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-      - .data/date_files:/date_files
-    environment:
-      - PYTHONUNBUFFERED=1
-      - COPIES=2
-    scale: 2
+#   all_countries_agg:
+#     build:
+#       context: ./containers/
+#       dockerfile: all_countries_agg/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/id_country_files:/id_country_files
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#       - COPIES=2
+#     scale: 2
 
-  max_day_agg:
-    build:
-      context: ./containers/
-      dockerfile: max_day_agg/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
+#   thumbnail_downloader:
+#     build:
+#       context: ./containers/
+#       dockerfile: thumbnail_downloader/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#         condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#       - COPIES=2
+#     scale: 2
 
-  adaptor1:
-    container_name: adaptor_1
-    build:
-      context: ./containers/
-      dockerfile: adaptor1-2/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - SERVICE_NAME=ADAPTOR_1
-      - PYTHONUNBUFFERED=1
+#   max_day_filter:
+#     build:
+#       context: ./containers/
+#       dockerfile: max_day_filter/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#       - .data/date_files:/date_files
+#     environment:
+#       - PYTHONUNBUFFERED=1
+#       - COPIES=2
+#     scale: 2
 
-  adaptor2:
-    container_name: adaptor_2
-    build:
-      context: ./containers/
-      dockerfile: adaptor1-2/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - SERVICE_NAME=ADAPTOR_2
-      - PYTHONUNBUFFERED=1
+#   max_day_agg:
+#     build:
+#       context: ./containers/
+#       dockerfile: max_day_agg/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - PYTHONUNBUFFERED=1
 
-  likes_filter:
-    container_name: likes_filter
-    build:
-      context: ./containers/
-      dockerfile: likes_filter/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
+#   adaptor1:
+#     container_name: adaptor_1
+#     build:
+#       context: ./containers/
+#       dockerfile: adaptor1-2/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - SERVICE_NAME=ADAPTOR_1
+#       - PYTHONUNBUFFERED=1
 
-  tag_filter:
-    container_name: tag_filter
-    build:
-      context: ./containers/
-      dockerfile: tag_filter/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-    environment:
-      - PYTHONUNBUFFERED=1
+#   adaptor2:
+#     container_name: adaptor_2
+#     build:
+#       context: ./containers/
+#       dockerfile: adaptor1-2/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - SERVICE_NAME=ADAPTOR_2
+#       - PYTHONUNBUFFERED=1
+
+#   likes_filter:
+#     container_name: likes_filter
+#     build:
+#       context: ./containers/
+#       dockerfile: likes_filter/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - PYTHONUNBUFFERED=1
+
+#   tag_filter:
+#     container_name: tag_filter
+#     build:
+#       context: ./containers/
+#       dockerfile: tag_filter/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#     environment:
+#       - PYTHONUNBUFFERED=1
   
-  duplicates_filter:
-    build:
-      context: ./containers/
-      dockerfile: duplicates_filter/Dockerfile
-    restart: on-failure
-    depends_on:
-      rabbitmq:
-         condition: service_healthy
-    volumes:
-      - .data/config.ini:/root/config.ini
-      - .data/id_duplicate_files:/id_duplicate_files
-    environment:
-      - COPIES=1
-    scale: 1
+#   duplicates_filter:
+#     build:
+#       context: ./containers/
+#       dockerfile: duplicates_filter/Dockerfile
+#     restart: on-failure
+#     depends_on:
+#       rabbitmq:
+#          condition: service_healthy
+#     volumes:
+#       - .data/config.ini:/root/config.ini
+#       - .data/id_duplicate_files:/id_duplicate_files
+#     environment:
+#       - COPIES=1
+#     scale: 1

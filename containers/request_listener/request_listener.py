@@ -19,7 +19,6 @@ HASHING_ATTRIBUTES = config['REQUEST_LISTENER']['hashing_attributes'].split('|')
 NODE_ID = config['REQUEST_LISTENER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 PORT = int(config['REQUEST_LISTENER']['port'])
-FLOWS_AMOUNT = int(config['REQUEST_LISTENER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
 PREVIOUS_STAGES_AMOUNTS = config['REQUEST_LISTENER']['previous_stage_amount'].split(',')

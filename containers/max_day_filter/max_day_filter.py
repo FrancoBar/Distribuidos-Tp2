@@ -26,36 +26,28 @@ OUTPUT_COLUMNS = config['MAX_DAY_FILTER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['MAX_DAY_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['MAX_DAY_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['MAX_DAY_FILTER']['port'])
-FLOWS_AMOUNT = int(config['MAX_DAY_FILTER']['flows_amount'])
+TARGET_COLUMN = config['MAX_DAY_FILTER']['target_column']
 
 CURRENT_STAGE_NAME = config['MAX_DAY_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['MAX_DAY_FILTER']['previous_stage_amount']
 NEXT_STAGE_AMOUNTS = config['MAX_DAY_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGES_NAMES = config['MAX_DAY_FILTER']['next_stage_name'].split(',')
 
-routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class MaxDayFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
         self.max_date = {} # key: client_id, value: [None, 0]
         self.clients_dates_views = {} # key: client_id, value: (key: day, value: views sum)
 
-    def _on_recv_eof(self, input_message):
+    def process_control_message(self, input_message):
         client_id = input_message['client_id']
-        output_message = None
-        if self.max_date[client_id][0]:
-            output_message = {'type':'data', 'date':self.max_date[client_id][0], 'view_count':self.max_date[client_id][1], 'client_id': client_id}
-        del self.max_date[client_id]
-        return output_message
+        if input_message['case'] == 'eof':
+            self.clients_received_eofs[client_id] += 1
 
-    def _on_last_eof(self, input_message):
-        # utils.clear_all_files(STORAGE)
-        return {'type':'control', 'case':'eof'}
 
     def filter_max_date(self, input_message, client_id):
         client_dictionary = self.clients_dates_views[client_id]
@@ -73,11 +65,9 @@ class MaxDayFilter:
             self.max_date[client_id][1] = amount_new 
         return None
 
-
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
-
-        
+        message_to_send = None
 
         if not (client_id in self.clients_dates_views):
             self.clients_dates_views[client_id] = {}
@@ -85,12 +75,12 @@ class MaxDayFilter:
             self.clients_received_eofs[client_id] = 0
 
         if input_message['type'] == 'data':
-            return self.filter_max_date(input_message, client_id)
+            message_to_send = self.filter_max_date(input_message, client_id)
         else:
-            if input_message['case'] == 'eof':
-                return broadcast_copies.broadcast_copies(self.middleware, input_message, ID, COPIES, self._on_recv_eof, self._on_last_eof)
+            message_to_send = self.process_control_message(input_message)
 
-            return None
+        if message_to_send != None:
+            self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):
         self.middleware.run()

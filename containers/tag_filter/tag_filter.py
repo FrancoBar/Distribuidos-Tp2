@@ -14,8 +14,6 @@ OUTPUT_COLUMNS = config['TAG_FILTER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['TAG_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['TAG_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['TAG_FILTER']['port'])
-FLOWS_AMOUNT = int(config['TAG_FILTER']['flows_amount'])
 TARGET_TAG =  config['TAG_FILTER']['target_tag']
 
 CURRENT_STAGE_NAME = config['TAG_FILTER']['current_stage_name']
@@ -27,7 +25,7 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 
 class TagFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
 

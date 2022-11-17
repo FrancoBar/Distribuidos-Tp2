@@ -19,8 +19,6 @@ OUTPUT_COLUMNS = config['DUPLICATES_FILTER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['DUPLICATES_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['DUPLICATES_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['DUPLICATES_FILTER']['port'])
-FLOWS_AMOUNT = int(config['DUPLICATES_FILTER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['DUPLICATES_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['DUPLICATES_FILTER']['previous_stage_amount']
@@ -31,7 +29,7 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 
 class DuplicationFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received

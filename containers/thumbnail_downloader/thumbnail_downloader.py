@@ -17,24 +17,22 @@ utils.initialize_log(LOGGING_LEVEL)
 RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['THUMBNAIL_DOWNLOADER']['input_exchange']
 OUTPUT_EXCHANGE = config['THUMBNAIL_DOWNLOADER']['output_exchange']
-OUTPUT_COLUMNS = config['THUMBNAIL_DOWNLOADER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['THUMBNAIL_DOWNLOADER']['hashing_attributes'].split('|')
 NODE_ID = config['THUMBNAIL_DOWNLOADER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['THUMBNAIL_DOWNLOADER']['port'])
-FLOWS_AMOUNT = int(config['THUMBNAIL_DOWNLOADER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['previous_stage_amount']
 NEXT_STAGE_AMOUNTS = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['THUMBNAIL_DOWNLOADER']['next_stage_name'].split(',')
 
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 
 class ThumbnailsDownloader:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
 
     def download_thumbnail(self, input_message):

@@ -22,8 +22,6 @@ OUTPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['output_exchange']
 OUTPUT_COLUMNS = config['ALL_COUNTRIES_AGG']['output_columns'].split(',')
 NODE_ID = config['ALL_COUNTRIES_AGG']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['ALL_COUNTRIES_AGG']['port'])
-FLOWS_AMOUNT = int(config['ALL_COUNTRIES_AGG']['flows_amount'])
 MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 
 CURRENT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['current_stage_name']
@@ -36,7 +34,7 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 
 class CountriesAmountFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}

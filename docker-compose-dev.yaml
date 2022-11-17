@@ -43,6 +43,9 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - COPIES=1
+    expose:
+      - "25555"
     depends_on:
       rabbitmq:
          condition: service_healthy
@@ -63,6 +66,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - COPIES=1
 
   thumbnail_downloader:
     build:
@@ -77,6 +81,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - COPIES=1
 
   # max_day_filter:
   #   build:
@@ -92,6 +97,7 @@ services:
   #   environment:
   #     - NODE_ID=0
   #     - PYTHONUNBUFFERED=1
+  #     - COPIES=1
 
   # max_day_agg:
   #   build:
@@ -106,6 +112,7 @@ services:
   #   environment:
   #     - NODE_ID=0
   #     - PYTHONUNBUFFERED=1
+  #     - COPIES=1
 
   # tag_filter:
   #   container_name: tag_filter
@@ -121,6 +128,7 @@ services:
   #   environment:
   #     - NODE_ID=0
   #     - PYTHONUNBUFFERED=1
+  #     - COPIES=1
   
   # duplicates_filter:
   #   build:
@@ -135,3 +143,4 @@ services:
   #     - .data/id_duplicate_files:/id_duplicate_files
   #   environment:
   #     - NODE_ID=0
+  #     - COPIES=1

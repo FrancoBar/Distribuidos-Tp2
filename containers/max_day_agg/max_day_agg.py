@@ -15,19 +15,17 @@ OUTPUT_COLUMNS = config['MAX_AGG_FILTER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['MAX_AGG_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['MAX_AGG_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['MAX_AGG_FILTER']['port'])
-FLOWS_AMOUNT = int(config['MAX_AGG_FILTER']['flows_amount'])
 
 CURRENT_STAGE_NAME = config['MAX_AGG_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = config['MAX_AGG_FILTER']['previous_stage_amount']
-NEXT_STAGE_AMOUNT = config['MAX_AGG_FILTER']['next_stage_amount'].split(',')
-NEXT_STAGE_NAME = config['MAX_AGG_FILTER']['next_stage_name'].split(',')
+NEXT_STAGE_AMOUNTS = config['MAX_AGG_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['MAX_AGG_FILTER']['next_stage_name'].split(',')
 
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class MaxDayAggregator:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.max_date = {} # key: client_id, value: [None, 0]

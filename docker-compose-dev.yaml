@@ -7,13 +7,24 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - IMAGE=test_target
+      - SERVICES=test_target_1,test_target_2
 
-  test_target:
-    container_name: test_target
+  test_target_1:
+    container_name: test_target_1
     build:
       context: ./containers/
       dockerfile: test_target/Dockerfile
+    environment:
+      - FAIL_AFTER=3
+
+  test_target_2:
+    container_name: test_target_2
+    build:
+      context: ./containers/
+      dockerfile: test_target/Dockerfile
+    environment:
+      - FAIL_AFTER=5
+
 # services:
 #   rabbitmq:
 #     build:

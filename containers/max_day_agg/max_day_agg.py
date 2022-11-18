@@ -16,7 +16,7 @@ NODE_ID = config['MAX_AGG_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 
 CURRENT_STAGE_NAME = config['MAX_AGG_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['MAX_AGG_FILTER']['previous_stage_amount']
+PREVIOUS_STAGE_AMOUNT = int(config['MAX_AGG_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['MAX_AGG_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['MAX_AGG_FILTER']['next_stage_name'].split(',')
 
@@ -37,6 +37,7 @@ class MaxDayAggregator:
         return None
 
     def process_control_message(self, input_message):
+        print("BORRAR me llego un mensaje al max day agg")
         client_id = input_message['client_id']
         if input_message['case'] == 'eof':
             self.clients_received_eofs[client_id] += 1

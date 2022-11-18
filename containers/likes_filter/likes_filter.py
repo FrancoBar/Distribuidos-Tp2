@@ -18,7 +18,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 LIKES_MIN =  int(config['LIKES_FILTER']['min_likes'])
 
 CURRENT_STAGE_NAME = config['LIKES_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['LIKES_FILTER']['previous_stage_amount']
+PREVIOUS_STAGE_AMOUNT = int(config['LIKES_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['LIKES_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['LIKES_FILTER']['next_stage_name'].split(',')
 
@@ -26,6 +26,7 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 
 class LikesFilter:
     def __init__(self):
+        print(f"Estoy suscrito al topico {CURRENT_STAGE_NAME}-{NODE_ID}")
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
@@ -55,12 +56,18 @@ class LikesFilter:
         return None
 
     def process_received_message(self, input_message):
+        # print("BORRAR me llego un mensaje al likes filter")
         client_id = input_message['client_id']
         processing_result = None
 
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
         
+        # # BORRAR
+        # if input_message['type'] == 'control':
+        #     print(f"BORRAR mensaje de control: {input_message}")
+
+
         if input_message['type'] == 'control':
             processing_result = self.process_control_message(input_message)
         else:

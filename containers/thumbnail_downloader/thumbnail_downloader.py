@@ -22,7 +22,7 @@ NODE_ID = config['THUMBNAIL_DOWNLOADER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 
 CURRENT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['THUMBNAIL_DOWNLOADER']['previous_stage_amount']
+PREVIOUS_STAGE_AMOUNT = int(config['THUMBNAIL_DOWNLOADER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['THUMBNAIL_DOWNLOADER']['next_stage_name'].split(',')
 
@@ -56,6 +56,7 @@ class ThumbnailsDownloader:
         return None
 
     def process_received_message(self, input_message):
+        print(f"BORRAR me llego un mensaje al downloader: {input_message}")
         client_id = input_message['client_id']
         message_to_send = None
 

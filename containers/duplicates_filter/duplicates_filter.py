@@ -21,10 +21,10 @@ NODE_ID = config['DUPLICATES_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 
 CURRENT_STAGE_NAME = config['DUPLICATES_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['DUPLICATES_FILTER']['previous_stage_amount']
+PREVIOUS_STAGE_AMOUNT = int(config['DUPLICATES_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['DUPLICATES_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['DUPLICATES_FILTER']['next_stage_name'].split(',')
-    
+
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class DuplicationFilter:
@@ -65,6 +65,8 @@ class DuplicationFilter:
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
         message_to_send = None
+
+        print("BORRAR me llego un mensaje al duplicates")
 
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0

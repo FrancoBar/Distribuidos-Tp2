@@ -33,7 +33,7 @@ services:
       - request_listener
     links:
       - request_listener
-    restart: on-failure
+    # restart: on-failure
 
   request_listener:
     container_name: request_listener
@@ -47,8 +47,8 @@ services:
     expose:
       - "25555"
     depends_on:
-      rabbitmq:
-         condition: service_healthy
+      - all_countries_agg
+      - likes_filter
     volumes:
       - .data/config.ini:/root/config.ini
 
@@ -56,10 +56,9 @@ services:
     build:
       context: ./containers/
       dockerfile: all_countries_agg/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
-      rabbitmq:
-         condition: service_healthy
+      - thumbnail_downloader
     volumes:
       - .data/id_country_files:/id_country_files
       - .data/config.ini:/root/config.ini
@@ -72,7 +71,7 @@ services:
     build:
       context: ./containers/
       dockerfile: thumbnail_downloader/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -87,10 +86,9 @@ services:
     build:
       context: ./containers/
       dockerfile: max_day_filter/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
-      rabbitmq:
-         condition: service_healthy
+      - max_day_agg
     volumes:
       - .data/config.ini:/root/config.ini
       - .data/date_files:/date_files
@@ -103,7 +101,7 @@ services:
     build:
       context: ./containers/
       dockerfile: max_day_agg/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
       rabbitmq:
          condition: service_healthy
@@ -119,22 +117,37 @@ services:
     build:
       context: ./containers/
       dockerfile: tag_filter/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
-      rabbitmq:
-         condition: service_healthy
+      - duplicates_filter
     volumes:
       - .data/config.ini:/root/config.ini
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
       - COPIES=1
-  
+
+  likes_filter:
+    container_name: likes_filter
+    build:
+      context: ./containers/
+      dockerfile: likes_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - tag_filter
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      - COPIES=1
+
+
   duplicates_filter:
     build:
       context: ./containers/
       dockerfile: duplicates_filter/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
       rabbitmq:
          condition: service_healthy
@@ -143,4 +156,5 @@ services:
       - .data/id_duplicate_files:/id_duplicate_files
     environment:
       - NODE_ID=0
+      - PYTHONUNBUFFERED=1
       - COPIES=1

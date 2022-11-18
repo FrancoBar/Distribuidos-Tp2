@@ -25,7 +25,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 
 CURRENT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount']
+PREVIOUS_STAGE_AMOUNT = int(config['ALL_COUNTRIES_AGG']['previous_stage_amount'])
 HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split('|')
 NEXT_STAGE_AMOUNTS = config['ALL_COUNTRIES_AGG']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['ALL_COUNTRIES_AGG']['next_stage_name'].split(',')
@@ -96,6 +96,8 @@ class CountriesAmountFilter:
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
         message_to_send = None
+
+        # print("BORRAR soy all countries aggregator")
 
         # Initialization
         if not (client_id in self.clients_received_eofs):

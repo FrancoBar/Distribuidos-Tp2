@@ -29,7 +29,7 @@ CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 TARGET_COLUMN = config['MAX_DAY_FILTER']['target_column']
 
 CURRENT_STAGE_NAME = config['MAX_DAY_FILTER']['current_stage_name']
-PREVIOUS_STAGE_AMOUNT = config['MAX_DAY_FILTER']['previous_stage_amount']
+PREVIOUS_STAGE_AMOUNT = int(config['MAX_DAY_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['MAX_DAY_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGES_NAMES = config['MAX_DAY_FILTER']['next_stage_name'].split(',')
 
@@ -47,6 +47,12 @@ class MaxDayFilter:
         client_id = input_message['client_id']
         if input_message['case'] == 'eof':
             self.clients_received_eofs[client_id] += 1
+            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
+                del self.clients_received_eofs[client_id]
+                return input_message
+        else:
+            return input_message
+        return None
 
 
     def filter_max_date(self, input_message, client_id):

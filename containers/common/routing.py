@@ -38,6 +38,7 @@ def router_iter(message, control_route_key, next_stages_data): # message, contro
         next_stage_amount = stage_data["next_stage_amount"]
         aux_routing_key = f'{next_stage_name}-{hash_fields(message, hashing_attributes) % next_stage_amount}'
         stage_routing_keys.append(aux_routing_key)
+    # print(f'Sent to: {stage_routing_keys}')
     return stage_routing_keys
 
 

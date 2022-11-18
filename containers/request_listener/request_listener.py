@@ -66,6 +66,11 @@ class RequestListener:
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
             self.entry_input.stop()
         input_message['client_id'] = aux_client_id
+
+        # # BORRAR
+        # if input_message['type'] == 'control':
+        #     print(f"BORRAR mensaje de control: {input_message}")
+
         self.entry_input.send(input_message)
 
     def answers_callback(self, input_message):
@@ -75,7 +80,9 @@ class RequestListener:
                 if not (client_id in self.clients_received_eofs):
                     self.clients_received_eofs[client_id] = 0
                 self.clients_received_eofs[client_id] += 1
+                print("BORRAR Me llego un eof")
                 if self.clients_received_eofs[client_id] == previous_stages_nodes:
+                    print("BORRAR Termino todo")
                     self.entry_ouput.send(input_message)
                     del self.clients_received_eofs[client_id]
         else:

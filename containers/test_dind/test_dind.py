@@ -6,35 +6,41 @@ import time
 import logging
 import os
 import socket
-
-SERVICES = os.environ['SERVICES'].split(',')
-SLEEP_SECONDS = 1
-RETRIES = 3
-
-health_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-health_socket.bind(('', 2114))
-health_socket.settimeout(3)
+from common import transmition_udp
 
 time.sleep(2)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
+
+SERVICES = os.environ['SERVICES'].split(',')
+TIMEOUT = 3
+SLEEP_SECONDS = 1
+RETRIES = 3
+
 logging.info(SERVICES)
+
+health_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+health_socket.bind(('', 2114))
+health_socket.settimeout(TIMEOUT)
+
+i = 0
 while True:
 	for service in SERVICES:
-		retries = 0
-		while True:
+		for retries in range(RETRIES):
 			try:
-				health_socket.sendto(b'A', (service, 2114))
-				#Check address == IMAGE
-				byte_array, address = health_socket.recvfrom(1)
-				logging.info(service + ', ' + str(address) + ', ' + str(byte_array))
+				i = i + 1
+				transmition_udp.send_uint32(health_socket, i, (service, 2114))
+				while True:
+					n, address = transmition_udp.recv_uint32(health_socket)
+					if i == n:
+						logging.debug('{}, {}, {}'.format(n, service, address))
+						break
 				break
 			except (socket.gaierror, socket.timeout):
-				retries = retries + 1
-				logging.info('Retry sending to ' + service)
-				if retries >= RETRIES:
-					logging.error(service)
-					subprocess.run(['docker', 'restart', service], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-					#logging.info('Command executed. Result={}. Output={}. Error={}'.format(result.returncode, result.stdout, result.stderr))
-					break
+				if retries >= RETRIES - 1:
+					result = subprocess.run(['docker', 'restart', service], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+					logging.debug('Command executed. Result={}. Output={}. Error={}'.format(result.returncode, result.stdout, result.stderr))
+				else:
+					logging.debug('Retry sending to ' + service)
 	time.sleep(SLEEP_SECONDS)
+

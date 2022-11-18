@@ -6,7 +6,7 @@ import socket
 import logging
 import signal
 from asyncio import IncompleteReadError
-from .transmition import *
+from .transmition_tcp import *
 
 class _ChannelQueue:
     def __init__(self, channel, queue_name):

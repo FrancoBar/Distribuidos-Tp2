@@ -69,6 +69,7 @@ class LikesFilter:
 
 
         if input_message['type'] == 'control':
+            print(f"BORRAR me llego el mensaje {input_message}")
             processing_result = self.process_control_message(input_message)
         else:
             processing_result = self.filter_likes(input_message)

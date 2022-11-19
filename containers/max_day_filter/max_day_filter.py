@@ -48,7 +48,11 @@ class MaxDayFilter:
         if input_message['case'] == 'eof':
             self.clients_received_eofs[client_id] += 1
             if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
+                input_message['date'] = self.max_date[client_id][0]
+                input_message['view_count'] = self.max_date[client_id][1]
                 del self.clients_received_eofs[client_id]
+                del self.max_date[client_id]
+                del self.clients_dates_views[client_id]
                 return input_message
         else:
             return input_message
@@ -69,7 +73,6 @@ class MaxDayFilter:
         if self.max_date[client_id][1] <= amount_new:
             self.max_date[client_id][0] = trending_date
             self.max_date[client_id][1] = amount_new 
-        return None
 
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
@@ -81,7 +84,7 @@ class MaxDayFilter:
             self.clients_received_eofs[client_id] = 0
 
         if input_message['type'] == 'data':
-            message_to_send = self.filter_max_date(input_message, client_id)
+            self.filter_max_date(input_message, client_id)
         else:
             message_to_send = self.process_control_message(input_message)
 

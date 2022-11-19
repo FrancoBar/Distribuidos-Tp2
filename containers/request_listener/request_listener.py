@@ -74,17 +74,21 @@ class RequestListener:
         self.entry_input.send(input_message)
 
     def answers_callback(self, input_message):
-        print(f"BORRAR me llego el mensaje {input_message}")
+        # print(f"BORRAR me llego el mensaje {input_message}")
         client_id = input_message['client_id']
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':
+                if ('producer' in input_message) and (input_message['producer'] == 'max_date'):
+                    input_message['type'] = 'data'
+                    self.entry_ouput.send(input_message)
                 if not (client_id in self.clients_received_eofs):
                     self.clients_received_eofs[client_id] = 0
                 self.clients_received_eofs[client_id] += 1
-                print("BORRAR Me llego un eof")
+                print(f"BORRAR Me llego un eof {input_message}")
                 if self.clients_received_eofs[client_id] == previous_stages_nodes:
                     print("BORRAR Termino todo")
-                    self.entry_ouput.send(input_message)
+                    # self.entry_ouput.send(input_message)
+                    self.entry_ouput.send({ 'type': 'control', 'case': 'eof' })
                     del self.clients_received_eofs[client_id]
         else:
             self.entry_ouput.send(input_message)

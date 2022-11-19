@@ -40,7 +40,7 @@ class ThumbnailsDownloader:
             with urllib.request.urlopen(input_message['thumbnail_link']) as response:
                 img_data = response.read()
                 base64_data = base64.b64encode(img_data).decode('utf-8')
-                return {'type':'data', 'producer':'img', 'video_id':input_message['video_id'], 'img_data':base64_data}
+                return {'type':'data', 'producer':'img', 'video_id':input_message['video_id'], 'img_data':base64_data, 'client_id': input_message['client_id']}
         except Exception as e:
             logging.exception(e)
             middleware.stop()
@@ -56,9 +56,10 @@ class ThumbnailsDownloader:
         return None
 
     def process_received_message(self, input_message):
-        print(f"BORRAR me llego un mensaje al downloader: {input_message}")
         client_id = input_message['client_id']
         message_to_send = None
+
+        print(f"BORRAR Me llego el mensaje: {input_message}")
 
         # Initialization
         if not (client_id in self.clients_received_eofs):
@@ -74,6 +75,7 @@ class ThumbnailsDownloader:
 
         # Message sending
         if message_to_send != None:
+            # print(f"BORRAR Voy a enviar el mensaje: {message_to_send}")
             self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):

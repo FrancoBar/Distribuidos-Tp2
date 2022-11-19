@@ -108,10 +108,12 @@ class CountriesAmountFilter:
         if input_message['type'] == 'data':
             message_to_send = self.all_countries_agg(input_message)
         else:
+            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
 
         # Result communication
         if message_to_send != None:
+            print(f"BORRAR voy a enviar {message_to_send}")
             self.middleware.send(message_to_send)
 
 

@@ -29,6 +29,7 @@ def hash_fields(message, hashing_attributes):
 
 def router_iter(message, control_route_key, next_stages_data): # message, control_route_key, [{"next_stage_name":..., "hashing_attributes":..., "next_stage_amount":...},...]
     if message['type'] == 'control':
+        # return list(map(lambda _: control_route_key, next_stages_data))
         return [control_route_key]
 
     stage_routing_keys = []

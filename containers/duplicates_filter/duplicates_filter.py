@@ -45,7 +45,7 @@ class DuplicationFilter:
             video_tuple = f"{video_id},{title},{category}"
             if not (video_tuple in client_set):
                 client_set.add(video_tuple)
-                input_message['case']='unique_pair'
+                input_message['producer']='unique_pair'
                 return {k: input_message[k] for k in OUTPUT_COLUMNS}
             else:
                 return None
@@ -75,7 +75,9 @@ class DuplicationFilter:
         if input_message['type'] == 'data':
             message_to_send = self.filter_duplicates(input_message)
         else:
+            print(f"BORRAR me llego {input_message}")
             message_to_send = self.process_control_message(input_message)
+            print(f"BORRAR envio {input_message}")
 
         if message_to_send != None:
             self.middleware.send(message_to_send)

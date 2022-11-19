@@ -37,7 +37,6 @@ class MaxDayAggregator:
     #     return None
 
     def process_control_message(self, input_message):
-        print("BORRAR me llego un mensaje al max day agg")
         client_id = input_message['client_id']
         if input_message['case'] == 'eof':
             self.clients_received_eofs[client_id] += 1
@@ -47,7 +46,8 @@ class MaxDayAggregator:
                 self.max_date[client_id][1] = amount_new
 
             if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
-                output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
+                # output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
+                output_message = {'type':'control', 'case': 'eof', 'producer':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
                 del self.clients_received_eofs[client_id]
                 del self.max_date[client_id]
                 # self.middleware.send(output_message)
@@ -77,7 +77,9 @@ class MaxDayAggregator:
             # self.filter_max_agg(input_message, client_id)
             print("BORRAR no deberia llegar a este caso")
         else:
+            print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
+            print(f"BORRAR envie el mensaje {input_message}")
 
         if message_to_send != None:
             self.middleware.send(message_to_send)

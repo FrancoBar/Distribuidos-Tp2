@@ -74,6 +74,7 @@ class RequestListener:
         self.entry_input.send(input_message)
 
     def answers_callback(self, input_message):
+        print(f"BORRAR me llego el mensaje {input_message}")
         client_id = input_message['client_id']
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':

@@ -40,7 +40,7 @@ class ThumbnailsDownloader:
             with urllib.request.urlopen(input_message['thumbnail_link']) as response:
                 img_data = response.read()
                 base64_data = base64.b64encode(img_data).decode('utf-8')
-                return {'type':'data', 'case':'img', 'video_id':input_message['video_id'], 'img_data':base64_data}
+                return {'type':'data', 'producer':'img', 'video_id':input_message['video_id'], 'img_data':base64_data}
         except Exception as e:
             logging.exception(e)
             middleware.stop()
@@ -68,7 +68,9 @@ class ThumbnailsDownloader:
         if input_message['type'] == 'data':
             message_to_send = self.download_thumbnail(input_message)
         else:
+            print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
+            print(f"BORRAR envio el mensaje {input_message}")
 
         # Message sending
         if message_to_send != None:

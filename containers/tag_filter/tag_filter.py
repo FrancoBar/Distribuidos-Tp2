@@ -53,8 +53,8 @@ class TagFilter:
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
 
+        print(f"BORRAR me llego el mensaje {input_message}")
         if input_message['type'] == 'control':
-            print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
         else:
             message_to_send = self.filter_tag(input_message)

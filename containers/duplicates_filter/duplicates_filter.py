@@ -66,7 +66,7 @@ class DuplicationFilter:
         client_id = input_message['client_id']
         message_to_send = None
 
-        print("BORRAR me llego un mensaje al duplicates")
+        # print("BORRAR me llego un mensaje al duplicates")
 
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
@@ -75,9 +75,9 @@ class DuplicationFilter:
         if input_message['type'] == 'data':
             message_to_send = self.filter_duplicates(input_message)
         else:
-            print(f"BORRAR me llego {input_message}")
+            # print(f"BORRAR me llego {input_message}")
             message_to_send = self.process_control_message(input_message)
-            print(f"BORRAR envio {input_message}")
+            # print(f"BORRAR envio {input_message}")
 
         if message_to_send != None:
             self.middleware.send(message_to_send)

@@ -35,6 +35,27 @@ services:
       - request_listener
     # restart: on-failure
 
+  client_1:
+    container_name: client_1
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=1
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+
   request_listener:
     container_name: request_listener
     build:

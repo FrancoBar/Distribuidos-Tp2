@@ -90,6 +90,7 @@ class RequestListener:
                     # self.entry_ouput.send(input_message)
                     self.entry_ouput.send({ 'type': 'control', 'case': 'eof' })
                     del self.clients_received_eofs[client_id]
+                    self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)
 

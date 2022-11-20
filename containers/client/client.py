@@ -11,6 +11,7 @@ from asyncio import IncompleteReadError
 from common import transmition
 
 USED_COLUMNS = ('type', 'categoryId', 'likes', 'title', 'tags', 'trending_date', 'video_id', 'view_count', 'country', 'thumbnail_link')
+ID_DIRECTORY='client_' + os.environ['NODE_ID'] + '/'
 STORAGE='./output/'
 
 if not os.path.exists(STORAGE + 'thumbnails/'):
@@ -51,14 +52,14 @@ def recv_answer(client_socket):
                 break
             if message['producer'] == 'img':
                 img_data = base64.b64decode(message['img_data'])
-                with open(STORAGE + 'thumbnails/' + message['video_id'] + '.jpg', 'wb') as thumbnail_file:
+                with open(STORAGE + ID_DIRECTORY + 'thumbnails/' + message['video_id'] + '.jpg', 'wb') as thumbnail_file:
                     thumbnail_file.write(img_data)
             elif message['producer'] == 'unique_pair':
-                with open(STORAGE + 'unique_pairs.txt', 'a') as unique_pairs_file:
+                with open(STORAGE + ID_DIRECTORY + 'unique_pairs.txt', 'a') as unique_pairs_file:
                     unique_pairs_file.write('"{}","{}","{}"\n'.format(message['video_id'], message['title'], message['categoryId']))
         
             elif message['producer'] == 'max_date':
-                with open(STORAGE + 'max_date.txt', 'a') as unique_pairs_file:
+                with open(STORAGE + ID_DIRECTORY + 'max_date.txt', 'a') as unique_pairs_file:
                     unique_pairs_file.write('"{}","{}"\n'.format(message['date'], message['view_count']))
 
         except Exception as e:

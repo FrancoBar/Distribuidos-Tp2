@@ -15,8 +15,8 @@ services:
       - NODE_ID=0
       - RABBITMQ_LOG_LEVELS=error
 
-  client:
-    container_name: client
+  client_0:
+    container_name: client_0
     build:
       context: ./containers/
       dockerfile: client/Dockerfile

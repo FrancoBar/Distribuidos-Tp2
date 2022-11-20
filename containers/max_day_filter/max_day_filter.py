@@ -59,8 +59,11 @@ class MaxDayFilter:
         return None
 
 
-    def filter_max_date(self, input_message, client_id):
+    def filter_max_date(self, input_message):
+        client_id = input_message['client_id']
         client_dictionary = self.clients_dates_views[client_id]
+
+        # print(client_dictionary)
 
         temp = time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')
         trending_date = time.strftime('%Y-%m-%d',temp)
@@ -78,13 +81,15 @@ class MaxDayFilter:
         client_id = input_message['client_id']
         message_to_send = None
 
+        # print(f"BORRAR me llego el mensaje {input_message}")
+
         if not (client_id in self.clients_dates_views):
             self.clients_dates_views[client_id] = {}
             self.max_date[client_id] = [None, 0]
             self.clients_received_eofs[client_id] = 0
 
         if input_message['type'] == 'data':
-            self.filter_max_date(input_message, client_id)
+            self.filter_max_date(input_message)
         else:
             message_to_send = self.process_control_message(input_message)
 

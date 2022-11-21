@@ -14,7 +14,7 @@ MAX_DESIRED_CONNECTIONS = int(config['SERVER']['max_desired_connections'])
 class BooleanSigterm:
     def __init__(self):
         self.should_keep_processing = True
-        signal.signal(signal.SIGTERM, self.sigterm_handler)
+        signal.signal(signal.SIGTERM, self.handle_sigterm)
     
     def handle_sigterm(self):
         self.should_keep_processing = False
@@ -92,6 +92,6 @@ class Server:
             accept_socket, next_client_number = read_connection
             if boolean_sigterm.should_keep_processing:
                 self._connection_handler(accept_socket, f'client_{next_client_number}')
-            read_connection.close()
+            accept_socket.close()
             read_connection = clients_queue.get()
 

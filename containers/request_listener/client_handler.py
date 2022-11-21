@@ -23,7 +23,7 @@ PREVIOUS_STAGES_AMOUNTS = config['REQUEST_LISTENER']['previous_stage_amount'].sp
 NEXT_STAGE_AMOUNTS = config['REQUEST_LISTENER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
-aux_client_id = 'generic_client_id'
+# aux_client_id = 'generic_client_id'
 
 previous_stages_nodes = 0
 
@@ -40,10 +40,12 @@ class ClientHandler:
         self.received_eofs = 0 # key: client_id, value: number of eofs received
         self.entry_input = None
         self.entry_ouput = None
+        self.client_id = None
 
     # def connection_handler(self, accept_socket, client_id):
     def handle_connection(self, accept_socket, client_id):
         try:
+            self.client_id = client_id
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             # self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
@@ -63,7 +65,7 @@ class ClientHandler:
     def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
             self.entry_input.stop()
-        input_message['client_id'] = aux_client_id
+        input_message['client_id'] = self.client_id
 
         # # BORRAR
         # if input_message['type'] == 'control':
@@ -73,21 +75,23 @@ class ClientHandler:
 
     def answers_callback(self, input_message):
         # print(f"BORRAR me llego el mensaje {input_message}")
-        client_id = input_message['client_id']
+        # client_id = input_message['client_id']
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':
                 if ('producer' in input_message) and (input_message['producer'] == 'max_date'):
                     input_message['type'] = 'data'
                     self.entry_ouput.send(input_message)
-                if not (client_id in self.received_eofs):
-                    self.received_eofs[client_id] = 0
-                self.received_eofs[client_id] += 1
+                # if not (client_id in self.received_eofs):
+                #     self.received_eofs[client_id] = 0
+                # self.received_eofs[client_id] += 1
+                self.received_eofs += 1
                 print(f"BORRAR Me llego un eof {input_message}")
-                if self.received_eofs[client_id] == previous_stages_nodes:
+                # if self.received_eofs[client_id] == previous_stages_nodes:
+                if self.received_eofs == previous_stages_nodes:
                     print("BORRAR Termino todo")
                     # self.entry_ouput.send(input_message)
                     self.entry_ouput.send({ 'type': 'control', 'case': 'eof' })
-                    del self.received_eofs[client_id]
+                    # del self.received_eofs[client_id]
                     self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)

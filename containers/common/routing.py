@@ -52,3 +52,5 @@ def generate_routing_function(control_route_key, next_stage_names, hashing_attri
             "next_stage_amount": int(next_stage_amounts[i])
         })
     return lambda message: router_iter(message, control_route_key, stages_rounting_data)
+
+def last_stage_router()

@@ -13,11 +13,14 @@ LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
 PORT = int(config['REQUEST_LISTENER']['port'])
+CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
 
 aux_client_id = 'generic_client_id'
 
 def process_connection(accepted_socket, client_id):
     handler = ClientHandler()
+    print(f"BORRAR voy a handleear la connection {client_id}")
+    # handler.handle_connection(accepted_socket, f'{CURRENT_STAGE_NAME}-{client_id}')
     handler.handle_connection(accepted_socket, client_id)
 
 class RequestListener:

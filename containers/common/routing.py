@@ -53,4 +53,7 @@ def generate_routing_function(control_route_key, next_stage_names, hashing_attri
         })
     return lambda message: router_iter(message, control_route_key, stages_rounting_data)
 
-def last_stage_router()
+def last_stage_router(message):
+    # client = message['client_id']
+    # print(f"Envio al cliente {client}")
+    return [message['client_id']]

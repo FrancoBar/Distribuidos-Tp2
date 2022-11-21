@@ -16,7 +16,7 @@ class BooleanSigterm:
         self.should_keep_processing = True
         signal.signal(signal.SIGTERM, self.handle_sigterm)
     
-    def handle_sigterm(self):
+    def handle_sigterm(self, *args):
         self.should_keep_processing = False
 
 class Server:
@@ -38,7 +38,7 @@ class Server:
         """
         connections_queue = mp.Queue()
         next_client_number = 0
-        processes_amount = max(psutil.cpu_count(), MAX_DESIRED_CONNECTIONS)
+        processes_amount = min(psutil.cpu_count(), MAX_DESIRED_CONNECTIONS)
         child_processes = []
         for _ in range(processes_amount):
             p = mp.Process(target=self.process_connections, args=[connections_queue])
@@ -60,12 +60,13 @@ class Server:
 
         for _ in range(len(child_processes)):
             connections_queue.put(None)
-        connections_queue.close()
         for child_process in child_processes:
             child_process.terminate()
         for child_process in child_processes:
             child_process.join()
+        connections_queue.close()
         connections_queue.join_thread()
+        print("Exited server run function")
 
     def _accept_new_connection(self):
         """
@@ -91,7 +92,9 @@ class Server:
         while read_connection != None:
             accept_socket, next_client_number = read_connection
             if boolean_sigterm.should_keep_processing:
+                print(f"BORRAR Voy a procesar la conexion de client client_{next_client_number}")
                 self._connection_handler(accept_socket, f'client_{next_client_number}')
             accept_socket.close()
             read_connection = clients_queue.get()
+        print("Exited child process")
 

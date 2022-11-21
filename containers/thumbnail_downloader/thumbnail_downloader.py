@@ -26,13 +26,16 @@ PREVIOUS_STAGE_AMOUNT = int(config['THUMBNAIL_DOWNLOADER']['previous_stage_amoun
 NEXT_STAGE_AMOUNTS = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['THUMBNAIL_DOWNLOADER']['next_stage_name'].split(',')
 
-routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+# routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
+# last_stage_router(message)
 
 class ThumbnailsDownloader:
     def __init__(self):
+        # self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
 
     def download_thumbnail(self, input_message):

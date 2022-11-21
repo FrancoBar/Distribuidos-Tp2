@@ -18,7 +18,6 @@ HASHING_ATTRIBUTES = config['REQUEST_LISTENER']['hashing_attributes'].split('|')
 NODE_ID = config['REQUEST_LISTENER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
 
-CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
 PREVIOUS_STAGES_AMOUNTS = config['REQUEST_LISTENER']['previous_stage_amount'].split(',')
 NEXT_STAGE_AMOUNTS = config['REQUEST_LISTENER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
@@ -46,6 +45,7 @@ class ClientHandler:
     def handle_connection(self, accept_socket, client_id):
         try:
             self.client_id = client_id
+            print(f"BORRAR el routing key de handle_connection es {client_id}")
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             # self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
@@ -74,7 +74,7 @@ class ClientHandler:
         self.entry_input.send(input_message)
 
     def answers_callback(self, input_message):
-        # print(f"BORRAR me llego el mensaje {input_message}")
+        print(f"BORRAR me llego el mensaje {input_message}")
         # client_id = input_message['client_id']
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':

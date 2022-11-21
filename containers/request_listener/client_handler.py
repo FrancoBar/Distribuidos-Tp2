@@ -24,11 +24,11 @@ NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
 # aux_client_id = 'generic_client_id'
 
-previous_stages_nodes = 0
+# previous_stages_nodes = 0
+previous_stages_nodes = 1
 
 for amount in PREVIOUS_STAGES_AMOUNTS:
     previous_stages_nodes += int(amount)
-    # TODO: IMPLEMENT THE WAIT FOR 1 EOF FROM THE MAX AGGREGATOR STAGE 
 
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 

@@ -96,7 +96,6 @@ services:
       - request_listener
     # restart: on-failure
 
-
   client_4:
     container_name: client_4
     build:
@@ -116,7 +115,6 @@ services:
     links:
       - request_listener
     # restart: on-failure
-
 
   client_5:
     container_name: client_5

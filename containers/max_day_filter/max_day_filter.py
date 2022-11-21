@@ -33,7 +33,8 @@ PREVIOUS_STAGE_AMOUNT = int(config['MAX_DAY_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['MAX_DAY_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGES_NAMES = config['MAX_DAY_FILTER']['next_stage_name'].split(',')
 
-routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+# routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+routing_function = routing.generate_routing_function(None, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class MaxDayFilter:
     def __init__(self):

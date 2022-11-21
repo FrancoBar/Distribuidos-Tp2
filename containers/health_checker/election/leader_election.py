@@ -4,6 +4,7 @@ import errno
 import time
 import logging
 import multiprocessing
+import signal
 from .dns import id_to_addr, addr_to_id
 from common import transmition_udp
 
@@ -22,17 +23,18 @@ DEBUG_MSG = {
 	MSG_ALIVE : "alive"
 }
 
-logging.basicConfig(level=logging.DEBUG)
-
 class LeaderElection:
 
-	def __init__(self, replicas_amount , id):
+	def __init__(self, replicas_amount , id, work_callback):
+		self.open = True
 		self.id = id
 		self.replicas_amount = replicas_amount
+		self.work_callback = work_callback
 		self.leader_id = replicas_amount - 1
 		self.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 		self.socket.bind(('', id_to_addr(id)[1]))
 		self.state = self._state_election
+		signal.signal(signal.SIGTERM, self.sigterm_handler_parent)
 
 	def broadcast(self, msg):
 		other_id = 0
@@ -51,14 +53,14 @@ class LeaderElection:
 		self.socket.settimeout(timeout)
 		msg, address = transmition_udp.recv_uint32(self.socket)
 		other_id = addr_to_id(address)
-		logging.info('From: {} Msg: {}'.format(other_id, DEBUG_MSG[msg]))
+		logging.debug('From: {} Msg: {}'.format(other_id, DEBUG_MSG[msg]))
 		return (other_id, msg)
 
 	def _state_election(self):
-		logging.info("Election")
+		logging.debug("Election")
 		self.broadcast(MSG_ELECTION)
 		received_ack = False
-		while True:
+		while self.open:
 			try:
 				other_id, msg = self.recv(TIMEOUT_ELECTION)
 				if msg == MSG_LEADER:
@@ -75,7 +77,7 @@ class LeaderElection:
 				else:
 					pass
 			except socket.timeout:
-				logging.info('TIMEOUT')
+				logging.debug('TIMEOUT')
 				if received_ack:
 					self.state = self._state_idle
 				else:
@@ -83,8 +85,8 @@ class LeaderElection:
 				break
 
 	def _state_idle(self):
-		logging.info("Idle")
-		while True:
+		logging.debug("Idle")
+		while self.open:
 			try:
 				other_id, msg = self.recv(TIMEOUT_IDLE)
 				if msg == MSG_LEADER:
@@ -96,32 +98,57 @@ class LeaderElection:
 				else:
 					pass
 			except socket.timeout:
-				logging.info('TIMEOUT')
+				logging.debug('TIMEOUT')
 				self.state = self._state_election
 				break
 
 	def _state_leader(self):
-		logging.info("Leader")
+		logging.debug("Leader")
 		self.broadcast(MSG_LEADER)
-		working_process = multiprocessing.Process(target=self._working_process)
+		working_process = multiprocessing.Process(target=self._working_process, daemon=False)
 		working_process.start()
-		while True:
-			other_id, msg = self.recv(None)
-			if msg == MSG_LEADER:
-				self.leader_id = other_id
-				self.state = self._state_idle
-			else:
-				if msg == MSG_ELECTION and other_id < self.id:
-					self.send(MSG_ACK, other_id)
-				self.state = self._state_election
-			working_process.kill()
-			break
+		try:
+			while self.open:
+				other_id, msg = self.recv(None)
+				if msg == MSG_LEADER:
+					self.leader_id = other_id
+					self.state = self._state_idle
+					break
+				else:
+					if msg == MSG_ELECTION and other_id < self.id:
+						self.send(MSG_ACK, other_id)
+					self.state = self._state_election
+					break
+		except socket.error:
+			pass
+		working_process.terminate()
 
-	def _working_process(self):
-		while True:
+	def _broadcast_process(self):
+		signal.signal(signal.SIGTERM, self.sigterm_handler_child)
+		while self.open:
 			self.broadcast(MSG_ALIVE)
 			time.sleep(.2)
 
+	def _working_process(self):
+		signal.signal(signal.SIGTERM, self.sigterm_handler_child)
+		broadcast_process = multiprocessing.Process(target=self._broadcast_process, daemon=False)
+		broadcast_process.start()
+		self.work_callback()
+
 	def run(self):
-		while(self.state):
-			self.state()
+		try:
+			while(self.open and self.state):
+				self.state()
+		except socket.error as e:
+			pass
+
+	def sigterm_handler_parent(self, signum, frame):
+		logging.info('Sigterm received')
+		self.open = False
+		self.socket.close()
+
+	def sigterm_handler_child(self, signum, frame):
+		self.open = False
+		for child in multiprocessing.active_children():
+			child.terminate()
+		sys.exit(0)

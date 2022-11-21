@@ -2,7 +2,7 @@ import time
 import os
 import csv
 import fcntl
-from common import broadcast_copies
+# from common import broadcast_copies
 from common import middleware
 from common import utils
 from common import routing
@@ -10,7 +10,7 @@ from common import routing
 INVALID_AMOUNT = -1
 
 ID=os.environ['HOSTNAME']
-COPIES=int(os.environ['COPIES'])
+# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']

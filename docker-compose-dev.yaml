@@ -35,106 +35,106 @@ services:
       - request_listener
     # restart: on-failure
 
-  client_1:
-    container_name: client_1
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=1
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-    # restart: on-failure
+  # client_1:
+  #   container_name: client_1
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=1
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+  #   # restart: on-failure
 
 
-  client_2:
-    container_name: client_2
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=2
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-    # restart: on-failure
+  # client_2:
+  #   container_name: client_2
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=2
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+  #   # restart: on-failure
 
-  client_3:
-    container_name: client_3
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=3
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-    # restart: on-failure
+  # client_3:
+  #   container_name: client_3
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=3
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+  #   # restart: on-failure
 
-  client_4:
-    container_name: client_4
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=4
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-    # restart: on-failure
+  # client_4:
+  #   container_name: client_4
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=4
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+  #   # restart: on-failure
 
-  client_5:
-    container_name: client_5
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=5
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-    # restart: on-failure
+  # client_5:
+  #   container_name: client_5
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=5
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+  #   # restart: on-failure
 
 
   request_listener:
@@ -145,7 +145,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
     expose:
       - "25555"
     depends_on:
@@ -167,7 +167,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
 
   thumbnail_downloader:
     build:
@@ -182,7 +182,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
 
   max_day_filter:
     build:
@@ -197,7 +197,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
 
   max_day_agg:
     build:
@@ -212,7 +212,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
 
   tag_filter:
     container_name: tag_filter
@@ -227,7 +227,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
 
   likes_filter:
     container_name: likes_filter
@@ -242,7 +242,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1
 
 
   duplicates_filter:
@@ -259,4 +259,4 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - COPIES=1
+      # - COPIES=1

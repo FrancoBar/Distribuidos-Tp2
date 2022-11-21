@@ -1,12 +1,12 @@
 import os
-from common import broadcast_copies
+# from common import broadcast_copies
 from common import middleware
 from common import utils
 from common import routing
 import logging
 
 ID=os.environ['HOSTNAME']
-COPIES=int(os.environ['COPIES'])
+# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']

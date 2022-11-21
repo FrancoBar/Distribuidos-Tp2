@@ -3,6 +3,21 @@ import logging
 import multiprocessing as mp
 import signal
 import psutil
+from common import utils
+
+config = utils.initialize_config()
+LOGGING_LEVEL = config['GENERAL']['logging_level']
+utils.initialize_log(LOGGING_LEVEL)
+
+MAX_DESIRED_CONNECTIONS = int(config['SERVER']['max_desired_connections'])
+
+class BooleanSigterm:
+    def __init__(self):
+        self.should_keep_processing = True
+        signal.signal(signal.SIGTERM, self.sigterm_handler)
+    
+    def handle_sigterm(self):
+        self.should_keep_processing = False
 
 class Server:
     def __init__(self, port, listen_backlog, connection_handler):
@@ -12,8 +27,6 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._connection_handler = connection_handler
-        self.next_client_id = 0
-        self.connections_queue = mp.Queue()
         
         self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
 
@@ -23,17 +36,36 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
+        connections_queue = mp.Queue()
+        next_client_number = 0
+        processes_amount = max(psutil.cpu_count(), MAX_DESIRED_CONNECTIONS)
+        child_processes = []
+        for _ in range(processes_amount):
+            p = mp.Process(target=self.process_connections, args=[connections_queue])
+            p.start()
+            child_processes.append(p)
+
         try:
             while self._open:
                 accept_socket = self._accept_new_connection()
                 # Envio el socket a la queue como (self.next_client_id, socket)
-                # self.next_client_id += 1
-                self._connection_handler(accept_socket)
+                connections_queue.put((accept_socket, next_client_number))
+                next_client_number += 1
+                # self._connection_handler(accept_socket)
         except socket.error as e:
             if self._open:
                 logging.exception(e)
         except Exception as e:
             logging.exception(e)
+
+        for _ in range(len(child_processes)):
+            connections_queue.put(None)
+        connections_queue.close()
+        for child_process in child_processes:
+            child_process.terminate()
+        for child_process in child_processes:
+            child_process.join()
+        connections_queue.join_thread()
 
     def _accept_new_connection(self):
         """
@@ -53,25 +85,13 @@ class Server:
         if self._prev_handler:
             self._prev_handler(signum, frame)
 
-
-def process_connections(clients_queue):
-    should_iterate = True
-    should_process_connections = True
-    read_connection = clients_queue.get()
-    should_iterate = read_connection != None
-    while should_iterate:
-        if should_process_connection:
-            # Llamo a connections_handler
-            pass
-
-        read_connection.close()
+    def process_connections(self, clients_queue):
         read_connection = clients_queue.get()
-        should_iterate = read_connection != None
+        boolean_sigterm = BooleanSigterm()
+        while read_connection != None:
+            accept_socket, next_client_number = read_connection
+            if boolean_sigterm.should_keep_processing:
+                self._connection_handler(accept_socket, f'client_{next_client_number}')
+            read_connection.close()
+            read_connection = clients_queue.get()
 
-    # Hay que setupear tambien un sigterm handler en el que setee el should_process_connections
-    # en false, o podria devolverse en connections_handler si termino por un sigterm y listo, 
-    # probablemente sea lo mejor
-
-
-def process_usage_alternative(desired_processes_amount):
-    processes_amount = min(psutil.cpu_count(), desired_processes_amount)

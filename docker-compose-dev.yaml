@@ -1,40 +1,70 @@
 services:
-  test_dind:
-    container_name: test_dind
+  health_checker_0:
+    container_name: health_checker_0
     build:
       context: ./containers/
-      dockerfile: test_dind/Dockerfile
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      dockerfile: health_checker/Dockerfile
     environment:
-      - SERVICES=test_target_1,test_target_2,test_target_3
+      - ELECTION_ID=0
+      - ELECTION_REPLICAS_AMOUNT=3
+      - PYTHONUNBUFFERED=1
+      
+  health_checker_1:
+    container_name: health_checker_1
+    build:
+      context: ./containers/
+      dockerfile: health_checker/Dockerfile
+    environment:
+      - ELECTION_ID=1
+      - ELECTION_REPLICAS_AMOUNT=3
+      - PYTHONUNBUFFERED=1
 
-  test_target_1:
-    container_name: test_target_1
+  health_checker_2:
+    container_name: health_checker_2
     build:
       context: ./containers/
-      dockerfile: test_target/Dockerfile
+      dockerfile: health_checker/Dockerfile
     environment:
-      - FAIL_AFTER=3
-      - SKIP_AFTER=0
+      - ELECTION_ID=2
+      - ELECTION_REPLICAS_AMOUNT=3
+      - PYTHONUNBUFFERED=1
 
-  test_target_2:
-    container_name: test_target_2
-    build:
-      context: ./containers/
-      dockerfile: test_target/Dockerfile
-    environment:
-      - FAIL_AFTER=5
-      - SKIP_AFTER=0
+  # test_dind:
+  #   container_name: test_dind
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: test_dind/Dockerfile
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - SERVICES=test_target_1,test_target_2,test_target_3
 
-  test_target_3:
-    container_name: test_target_3
-    build:
-      context: ./containers/
-      dockerfile: test_target/Dockerfile
-    environment:
-      - FAIL_AFTER=0
-      - SKIP_AFTER=6
+  # test_target_1:
+  #   container_name: test_target_1
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: test_target/Dockerfile
+  #   environment:
+  #     - FAIL_AFTER=3
+  #     - SKIP_AFTER=0
+
+  # test_target_2:
+  #   container_name: test_target_2
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: test_target/Dockerfile
+  #   environment:
+  #     - FAIL_AFTER=5
+  #     - SKIP_AFTER=0
+
+  # test_target_3:
+  #   container_name: test_target_3
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: test_target/Dockerfile
+  #   environment:
+  #     - FAIL_AFTER=0
+  #     - SKIP_AFTER=6
 
 # services:
 #   rabbitmq:

@@ -8,8 +8,8 @@ import signal
 from .dns import id_to_addr, addr_to_id
 from common import transmition_udp
 
-TIMEOUT_IDLE = 10
-TIMEOUT_ELECTION = 5
+TIMEOUT_IDLE = 8
+TIMEOUT_ELECTION = 2
 
 MSG_ELECTION=0
 MSG_LEADER=1

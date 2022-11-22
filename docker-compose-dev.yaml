@@ -284,7 +284,7 @@ services:
       # - COPIES=1
 
   tag_filter_0:
-    container_name: tag_filter
+    # container_name: tag_filter
     build:
       context: ./containers/
       dockerfile: tag_filter/Dockerfile
@@ -300,7 +300,7 @@ services:
       # - COPIES=1
 
   tag_filter_1:
-    container_name: tag_filter
+    # container_name: tag_filter
     build:
       context: ./containers/
       dockerfile: tag_filter/Dockerfile
@@ -316,7 +316,7 @@ services:
       # - COPIES=1      
 
   likes_filter_0:
-    container_name: likes_filter
+    # container_name: likes_filter
     build:
       context: ./containers/
       dockerfile: likes_filter/Dockerfile
@@ -332,7 +332,7 @@ services:
       # - COPIES=1
 
   likes_filter_1:
-    container_name: likes_filter
+    # container_name: likes_filter
     build:
       context: ./containers/
       dockerfile: likes_filter/Dockerfile

@@ -81,9 +81,9 @@ class MaxDayAggregator:
             # self.filter_max_agg(input_message, client_id)
             print("BORRAR no deberia llegar a este caso")
         else:
-            print(f"BORRAR me llego el mensaje {input_message}")
+            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
-            print(f"BORRAR envie el mensaje {input_message}")
+            # print(f"BORRAR envie el mensaje {input_message}")
 
         if message_to_send != None:
             self.middleware.send(message_to_send)

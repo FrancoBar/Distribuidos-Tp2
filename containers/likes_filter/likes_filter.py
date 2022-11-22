@@ -30,7 +30,7 @@ class LikesFilter:
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
+        self.sent_configs = set()
 
 
     def filter_likes(self, input_message):
@@ -49,10 +49,12 @@ class LikesFilter:
             self.clients_received_eofs[client_id] += 1
             if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
                 del self.clients_received_eofs[client_id]
+                self.sent_configs.remove(client_id)
                 return input_message
         else:
-            return input_message
-                
+            if not (client_id in self.sent_configs):
+                self.sent_configs.add(client_id)
+                return input_message
         return None
 
     def process_received_message(self, input_message):
@@ -69,7 +71,7 @@ class LikesFilter:
 
 
         if input_message['type'] == 'control':
-            print(f"BORRAR me llego el mensaje {input_message}")
+            # print(f"BORRAR me llego el mensaje {input_message}")
             processing_result = self.process_control_message(input_message)
         else:
             processing_result = self.filter_likes(input_message)

@@ -39,6 +39,7 @@ class CountriesAmountFilter:
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
         self.clients_countries_amount = {} # key: client_id, value: countries_amount
+        self.sent_configs = set()
 
     def process_control_message(self, input_message):
         client_id = input_message['client_id']
@@ -48,13 +49,19 @@ class CountriesAmountFilter:
                 del self.clients_countries_amount[client_id]
                 del self.clients_countries_per_day[client_id]
                 del self.clients_received_eofs[client_id]
+                self.sent_configs.remove(client_id)
                 return input_message
             else:
                 return None
         else:
-            print("BORRAR setupee la configuracion")
-            self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
-            return input_message
+            # print(f"BORRAR Me llego config de {client_id}")
+            if not (client_id in self.sent_configs):
+                # print(f"BORRAR setupee la configuracion de {client_id}")
+                self.sent_configs.add(client_id)
+                self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
+                return input_message
+            return None
+            # return input_message
 
     def all_countries_agg(self, input_message):
         client_id = input_message['client_id']

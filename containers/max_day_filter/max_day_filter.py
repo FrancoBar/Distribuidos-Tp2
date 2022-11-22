@@ -43,6 +43,7 @@ class MaxDayFilter:
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.max_date = {} # key: client_id, value: [None, 0]
         self.clients_dates_views = {} # key: client_id, value: (key: day, value: views sum)
+        self.sent_configs = set()
 
     def process_control_message(self, input_message):
         client_id = input_message['client_id']
@@ -54,11 +55,13 @@ class MaxDayFilter:
                 del self.clients_received_eofs[client_id]
                 del self.max_date[client_id]
                 del self.clients_dates_views[client_id]
+                self.sent_configs.remove(client_id)
                 return input_message
         else:
-            return input_message
+            if not (client_id in self.sent_configs):
+                self.sent_configs.add(client_id)
+                return input_message
         return None
-
 
     def filter_max_date(self, input_message):
         client_id = input_message['client_id']

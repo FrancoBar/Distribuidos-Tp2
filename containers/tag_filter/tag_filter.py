@@ -29,6 +29,7 @@ class TagFilter:
                                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.sent_configs = set()
+        self.counter = 0
 
     def filter_tag(self, input_message):
         if TARGET_TAG in input_message['tags']:
@@ -67,6 +68,9 @@ class TagFilter:
             message_to_send = self.filter_tag(input_message)
 
         if message_to_send != None:
+            message_to_send['msg_id'] = self.counter
+            message_to_send['origin'] = NODE_ID
+            self.counter += 1
             self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):

@@ -558,12 +558,14 @@ services:
     volumes:
       - .data/config.ini:/root/config.ini
       - .data/id_duplicate_files:/id_duplicate_files
+      - .data/duplicates_filter_0:/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   duplicates_filter_1:
+    container_name: duplicates_filter_1
     build:
       context: ./containers/
       dockerfile: duplicates_filter/Dockerfile
@@ -574,6 +576,7 @@ services:
     volumes:
       - .data/config.ini:/root/config.ini
       - .data/id_duplicate_files:/id_duplicate_files
+      - .data/duplicates_filter_1:/storage
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
@@ -590,6 +593,7 @@ services:
     volumes:
       - .data/config.ini:/root/config.ini
       - .data/id_duplicate_files:/id_duplicate_files
+      - .data/duplicates_filter_2:/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1

@@ -55,7 +55,7 @@ class QueryState:
                                 log_type, origin, in_id, out_id, key, *value = args
                                 update_table[origin] = in_id
                                 query['id'] = int(out_id)
-                                update_value[key] = self._read_value(query['values'], key, value)
+                                self._read_value(query['values'], key, value)
 
                     except ValueError:
                         query['id'] = last_id
@@ -125,33 +125,3 @@ def _default_read_value(query, key, value):
 
 def _default_write_value(query, key, value):
     return str(value)
-
-state = QueryState('./storage/', _default_read_value, _default_write_value)
-
-print(state)
-
-# state.write('cliente1', 'origin1', 1, 'key1',20)
-# state.commit('cliente1', 'origin1', 1)
-
-# state.write('cliente1', 'origin2', 8)
-# state.commit('cliente1', 'origin2', 8)
-
-# state.write('cliente1', 'origin1', 3, 'key1',3)
-# state.commit('cliente1', 'origin1', 3)
-
-# state.write('cliente2', 'origin1', 1, 'key2',5)
-# state.commit('cliente2', 'origin1', 1)
-
-# print(state.get_id('cliente1'), state.get_id('cliente2'))
-# print(state.get_values('cliente1'), state.get_values('cliente2'))
-
-# print(state.is_last_msg('cliente1','origin1', '1'))
-# print(state.is_last_msg('cliente1','origin1', '2'))
-# print(state.is_last_msg('cliente1','origin1', '3'))
-# print(state.is_last_msg('cliente1','origin1', '4'))
-# print(state.is_last_msg('cliente1','origin2', '8'))
-#print(state.is_last_msg('cliente1','origin2', 8))
-
-#state.delete_query('cliente1')
-
-print(state)

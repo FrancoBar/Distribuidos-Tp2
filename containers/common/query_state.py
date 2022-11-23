@@ -1,146 +1,157 @@
 import os
 
-TABLE_FILE = 'table.txt'
-QUERY_TYPE = '.csv'
+FILE_TYPE = '.csv'
 
-def _default_serialize_value(value):
-    return str(value)
-
-def _default_deserialize_value(value_row):
-    return value_row[2]
+WRITE_BYTE = 'w'
+COMMIT_BYTE = 'c'
 
 class QueryState:
-    def __init__(self, storage,
-        serialize_value=_default_serialize_value,
-        deserialize_value=_default_deserialize_value):
-
-        self.storage = storage
-        if not os.path.exists(storage):
-            os.makedirs(storage)
-
-        self.id = 0
-        self.message_table = {}
-        self.queries = {}
-        self.serialize_value = serialize_value
-        self.deserialize_value = deserialize_value
+    def __init__(self, storage,read_value, write_value):
+        self._storage = storage
+        self._read_value = read_value
+        self._write_value = write_value
+        self._queries = {}
         self._build_queries()
-        #Todo: Reduce table size after a number of entries
-        self._build_table()
 
     def _build_queries(self):
-        #BORRAR: ver si en vez de hacer lo del substring usamos un includes QUERY_TYPE, asi
-        # si despeues cambiamos el tipo de archivo no rompe por olvidarnos de cambiar el -4 
-        query_file_list = list(filter(lambda file_name : file_name[-4:] == QUERY_TYPE, os.listdir(self.storage)))
-        for query_id in query_file_list:
-            prev_size = 0
-            current_size = 0
-            with open(self.storage + query_id, 'r+') as csvfile:
-                self.queries[query_id[:-4]] = {}
-                pending_key = None
-                pending_value = None
-                while True:
-                    line = csvfile.readline()
-                    if line == '':
-                        if pending_key:
-                            csvfile.truncate(prev_size)
-                        break
-                    if '\n' not in line:
-                        csvfile.truncate(prev_size if pending_key else current_size)
-                        break
-                    prev_size = current_size
-                    current_size = csvfile.tell()
-                    row = line[:-1].split(',')
-                    if row[0] == 'c' and pending_key:
-                        self.queries[query_id[:-4]][pending_key] = pending_value
-                        pending_key = None
-                        pending_value = None
-                    elif row[0] == 'w':
-                        pending_key = row[1]
-                        pending_value = self.deserialize_value(row)
+        if not os.path.exists(self._storage):
+            os.makedirs(self._storage)
+        
+        query_file_list = list(filter(lambda file_name : file_name[-len(FILE_TYPE):] == FILE_TYPE, os.listdir(self._storage)))
+        for query_name in query_file_list:
+            try:
+                query_id = query_name[:-len(FILE_TYPE)]
+                self._queries[query_id] = self._build_query(query_name)
+            except FileNotFoundError as e:
+                continue
 
-    def _build_table(self):
-        prev_size = 0
-        current_size = 0
-        try:
-            with open(self.storage + TABLE_FILE, 'r+') as tblfile:
-                while True:
-                    line = tblfile.readline()
-                    if line == '':
-                        break
-                    if '\n' not in line:
-                        tblfile.truncate(current_size)
-                        break
-                    prev_size = current_size
-                    current_size = tblfile.tell()
-                    row = line[:-1].split(',')
-                    self.message_table[int(row[0])] = int(row[1])
-                    self.id = int(row[2]) + 1
-        except FileNotFoundError as e:
-            return 
+    def _build_query(self, query_name):
+        #Starts at -1 to compensate for rare empty files cases
+        query = {'id':-1 , 'msg_table' : {}, 'values' : {}}
+        last_commit_size = 0
+        pending_lines = []
+        with open(self._storage + query_name, 'r+') as query_file:
+            while True:
+                line = query_file.readline()
+                if line == '' or '\n' not in line:
+                    query_file.truncate(last_commit_size)
+                    break
 
-    def get_id(self):
-        return self.id
+                log_type = line[0]
+                if log_type == WRITE_BYTE:
+                    pending_lines.append(line)
+                elif log_type == COMMIT_BYTE and len(pending_lines) > 0:
+                    last_id = query['id']
+                    update_table = {}
+                    update_value = {}
+                    try:
+                        for pending_line in pending_lines:
+                            args = pending_line[:-1].split(',')
+                            if len(args) == 4:
+                                log_type, origin, in_id, out_id = args
+                                update_table[origin] = in_id
+                                query['id'] = int(out_id)
+                            else:
+                                log_type, origin, in_id, out_id, key, *value = args
+                                update_table[origin] = in_id
+                                query['id'] = int(out_id)
+                                update_value[key] = self._read_value(query['values'], key, value)
+
+                    except ValueError:
+                        query['id'] = last_id
+                        query_file.truncate(last_commit_size)
+                        break
+                    pending_lines = []
+                    query['values'].update(update_value)
+                    query['msg_table'].update(update_table)
+                    last_commit_size = query_file.tell()
+                else:
+                    query_file.truncate(last_commit_size)
+                    break
+    
+        query['id'] = query['id'] + 1
+        return query
 
     def _get_query(self, query_id):
-        if not query_id in self.queries:
-            self.queries[query_id] = {}
-        return self.queries[query_id]
+        if not query_id in self._queries:
+            self._queries[query_id] = {'id':0 , 'msg_table' : {}, 'values' : {}}
+        return self._queries[query_id]
 
-    def put(self, query_id, key, value):
+    def delete_query(self, query_id):
+        if query_id in self._queries:
+            del self._queries[query_id]
+            os.remove(self._storage + str(query_id) + FILE_TYPE)
+
+    def get_values(self, query_id):
+        return self._get_query(query_id)['values']
+
+    def get_id(self, query_id):
+        return self._get_query(query_id)['id']
+
+    def is_last_msg(self, query_id, origin, msg_id):
+        assert(type(msg_id) == str)
         query = self._get_query(query_id)
-        query[key] = value
-
-        with open(self.storage + str(query_id) + QUERY_TYPE, 'a') as query_file:
-            query_file.write('{},{},{}\n'.format('w',key,self.serialize_value(value)))
-
-    def get(self, query_id, key):
-        query = self._get_query(query_id)
-        if key not in query:
-            raise KeyError("On state")
-        return query[key]
-
-    def is_already_received(self, query, origin, msg_id):
-        if origin not in self.message_table:
+        if origin not in query['msg_table']:
             return False
-        return (self.message_table[origin] == msg_id)
+        return (query['msg_table'][origin] == msg_id)
+
+    def _write(self, query_id, line):
+        with open(self._storage + str(query_id) + FILE_TYPE, 'a') as query_file:
+            query_file.write(line)
+
+    def write(self, query_id, origin, msg_id, key=None, value=None):
+        query = self._get_query(query_id)
+        out_id = query['id']
+        log_header = '{},{},{},{}'.format(WRITE_BYTE, origin, msg_id, out_id)
+        if not key or not value:
+            self._write(query_id, log_header + '\n')
+        else:
+            log_body = ',{},{}\n'.format(key, self._write_value(query['values'], key, value))
+            self._write(query_id, log_header + log_body)
 
     def commit(self, query_id, origin, msg_id):
-        with open(self.storage + str(query_id) + QUERY_TYPE, 'a') as query_file:
-            query_file.write('c\n')
+        query = self._get_query(query_id)
+        out_id = query['id']
+        self._write(query_id, COMMIT_BYTE + '\n')
 
-        with open(self.storage + TABLE_FILE, 'a') as table_file:
-            table_file.write('{},{},{}\n'.format(origin, msg_id, self.id))
-
-        self.message_table[origin] = msg_id
-        self.id = self.id + 1
-
-    def delete(self, query_id):
-        if query_id in self.queries:
-            del self.queries[query_id]
-            os.remove(self.storage + str(query_id) + QUERY_TYPE)
+        query['msg_table'][origin] = msg_id
+        query['id'] = out_id + 1
 
     def __str__(self):
-            return 'Id: ' + str(self.id) + '\nMsgTable: ' + str(self.message_table) + '\nQueries: ' + str(self.queries)
+            return str(self._queries)
 
+def _default_read_value(query, key, value):
+    return value[0]
 
-# middleware
-# constructor(con reconstruccion)
+def _default_write_value(query, key, value):
+    return str(value)
 
-# llega_msg
-# get_state(query_id) => {}
-# is_already_received(origin, id_msg)
-# delete(query_id)
-# callback:
-#     return {origen, id_msg}
-# commit(origin, id_msg, query_id, valor)
-#
-# origin, id_recv, id_send, query_id,[video_id, RU]
+state = QueryState('./storage/', _default_read_value, _default_write_value)
 
-state = QueryState('./storage/')
-# state.put('cliente1', 'RU', 89)
-# state.commit('cliente1', 1, 20)
-# state.put('cliente2', 'ZD', 178)
-# state.commit('cliente2', 2, 40)
-# state.put('cliente1', 'CU', 29)
-# state.commit('cliente1', 1, 20)
+print(state)
+
+# state.write('cliente1', 'origin1', 1, 'key1',20)
+# state.commit('cliente1', 'origin1', 1)
+
+# state.write('cliente1', 'origin2', 8)
+# state.commit('cliente1', 'origin2', 8)
+
+# state.write('cliente1', 'origin1', 3, 'key1',3)
+# state.commit('cliente1', 'origin1', 3)
+
+# state.write('cliente2', 'origin1', 1, 'key2',5)
+# state.commit('cliente2', 'origin1', 1)
+
+# print(state.get_id('cliente1'), state.get_id('cliente2'))
+# print(state.get_values('cliente1'), state.get_values('cliente2'))
+
+# print(state.is_last_msg('cliente1','origin1', '1'))
+# print(state.is_last_msg('cliente1','origin1', '2'))
+# print(state.is_last_msg('cliente1','origin1', '3'))
+# print(state.is_last_msg('cliente1','origin1', '4'))
+# print(state.is_last_msg('cliente1','origin2', '8'))
+#print(state.is_last_msg('cliente1','origin2', 8))
+
+#state.delete_query('cliente1')
+
 print(state)

@@ -12,24 +12,25 @@ RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['LIKES_FILTER']['input_exchange']
 OUTPUT_EXCHANGE = config['LIKES_FILTER']['output_exchange']
 OUTPUT_COLUMNS = config['LIKES_FILTER']['output_columns'].split(',')
-HASHING_ATTRIBUTES = config['LIKES_FILTER']['hashing_attributes'].split(',')
+HASHING_ATTRIBUTES = config['LIKES_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['LIKES_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['LIKES_FILTER']['port'])
-FLOWS_AMOUNT = int(config['LIKES_FILTER']['flows_amount'])
 LIKES_MIN =  int(config['LIKES_FILTER']['min_likes'])
 
-PREVIOUS_STAGE_AMOUNT = config['LIKES_FILTER']['previous_stage_amount']
-NEXT_STAGE_AMOUNT = config['LIKES_FILTER']['next_stage_amount']
-NEXT_STAGE_NAME = config['LIKES_FILTER']['next_stage_name']
+CURRENT_STAGE_NAME = config['LIKES_FILTER']['current_stage_name']
+PREVIOUS_STAGE_AMOUNT = int(config['LIKES_FILTER']['previous_stage_amount'])
+NEXT_STAGE_AMOUNTS = config['LIKES_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['LIKES_FILTER']['next_stage_name'].split(',')
 
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class LikesFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'LIKES_FILTER-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
+        print(f"Estoy suscrito al topico {CURRENT_STAGE_NAME}-{NODE_ID}")
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.previous_stage_size = self.middleware.get_previous_stage_size()
+        self.sent_configs = set()
 
 
     def filter_likes(self, input_message):
@@ -48,18 +49,29 @@ class LikesFilter:
             self.clients_received_eofs[client_id] += 1
             if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
                 del self.clients_received_eofs[client_id]
+                self.sent_configs.remove(client_id)
                 return input_message
         else:
-            return input_message
-                
+            if not (client_id in self.sent_configs):
+                self.sent_configs.add(client_id)
+                return input_message
         return None
 
     def process_received_message(self, input_message):
+        # print("BORRAR me llego un mensaje al likes filter")
         client_id = input_message['client_id']
+        processing_result = None
+
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
-        processing_result = None
+        
+        # # BORRAR
+        # if input_message['type'] == 'control':
+        #     print(f"BORRAR mensaje de control: {input_message}")
+
+
         if input_message['type'] == 'control':
+            # print(f"BORRAR me llego el mensaje {input_message}")
             processing_result = self.process_control_message(input_message)
         else:
             processing_result = self.filter_likes(input_message)

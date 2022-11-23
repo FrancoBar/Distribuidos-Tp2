@@ -15,8 +15,8 @@ services:
       - NODE_ID=0
       - RABBITMQ_LOG_LEVELS=error
 
-  client:
-    container_name: client
+  client_0:
+    container_name: client_0
     build:
       context: ./containers/
       dockerfile: client/Dockerfile
@@ -33,7 +33,192 @@ services:
       - request_listener
     links:
       - request_listener
-    restart: on-failure
+    # restart: on-failure
+
+  client_1:
+    container_name: client_1
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=1
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+
+  client_2:
+    container_name: client_2
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=2
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+  client_3:
+    container_name: client_3
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=3
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+  client_4:
+    container_name: client_4
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=4
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+  client_5:
+    container_name: client_5
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=5
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+  client_6:
+    container_name: client_6
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=6
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+
+  client_7:
+    container_name: client_7
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=7
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+  client_8:
+    container_name: client_8
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=8
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+
+  client_9:
+    container_name: client_9
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=9
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+    # restart: on-failure
+
+
 
   request_listener:
     container_name: request_listener
@@ -43,32 +228,76 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      # - COPIES=1
+    expose:
+      - "25555"
     depends_on:
-      rabbitmq:
-         condition: service_healthy
+      - all_countries_agg_0
+      - all_countries_agg_1
+      - all_countries_agg_2
+      - likes_filter_0
+      - likes_filter_1
+      - likes_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
 
-  all_countries_agg:
+  all_countries_agg_0:
     build:
       context: ./containers/
       dockerfile: all_countries_agg/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
-      rabbitmq:
-         condition: service_healthy
+      - thumbnail_downloader_0
+      - thumbnail_downloader_1
+      - thumbnail_downloader_2
     volumes:
       - .data/id_country_files:/id_country_files
       - .data/config.ini:/root/config.ini
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      # - COPIES=1
 
-  thumbnail_downloader:
+  all_countries_agg_1:
+    build:
+      context: ./containers/
+      dockerfile: all_countries_agg/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - thumbnail_downloader_0
+      - thumbnail_downloader_1
+      - thumbnail_downloader_2
+    volumes:
+      - .data/id_country_files:/id_country_files
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  all_countries_agg_2:
+    build:
+      context: ./containers/
+      dockerfile: all_countries_agg/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - thumbnail_downloader_0
+      - thumbnail_downloader_1
+      - thumbnail_downloader_2
+    volumes:
+      - .data/id_country_files:/id_country_files
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+
+  thumbnail_downloader_0:
     build:
       context: ./containers/
       dockerfile: thumbnail_downloader/Dockerfile
-    restart: on-failure
+    # restart: on-failure
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -77,61 +306,291 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      # - COPIES=1
 
-  # max_day_filter:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: max_day_filter/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #     - .data/date_files:/date_files
-  #   environment:
-  #     - NODE_ID=0
-  #     - PYTHONUNBUFFERED=1
+  thumbnail_downloader_1:
+    build:
+      context: ./containers/
+      dockerfile: thumbnail_downloader/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
 
-  # max_day_agg:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: max_day_agg/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - NODE_ID=0
-  #     - PYTHONUNBUFFERED=1
+  thumbnail_downloader_2:
+    build:
+      context: ./containers/
+      dockerfile: thumbnail_downloader/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
 
-  # tag_filter:
-  #   container_name: tag_filter
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: tag_filter/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #   environment:
-  #     - NODE_ID=0
-  #     - PYTHONUNBUFFERED=1
-  
-  # duplicates_filter:
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: duplicates_filter/Dockerfile
-  #   restart: on-failure
-  #   depends_on:
-  #     rabbitmq:
-  #        condition: service_healthy
-  #   volumes:
-  #     - .data/config.ini:/root/config.ini
-  #     - .data/id_duplicate_files:/id_duplicate_files
-  #   environment:
-  #     - NODE_ID=0
+  max_day_filter_0:
+    build:
+      context: ./containers/
+      dockerfile: max_day_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - max_day_agg_0
+      - max_day_agg_1
+      - max_day_agg_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/date_files:/date_files
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  max_day_filter_1:
+    build:
+      context: ./containers/
+      dockerfile: max_day_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - max_day_agg_0
+      - max_day_agg_1
+      - max_day_agg_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/date_files:/date_files
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  max_day_filter_2:
+    build:
+      context: ./containers/
+      dockerfile: max_day_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - max_day_agg_0
+      - max_day_agg_1
+      - max_day_agg_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/date_files:/date_files
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+
+  max_day_agg_0:
+    build:
+      context: ./containers/
+      dockerfile: max_day_agg/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  max_day_agg_1:
+    build:
+      context: ./containers/
+      dockerfile: max_day_agg/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  max_day_agg_2:
+    build:
+      context: ./containers/
+      dockerfile: max_day_agg/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  tag_filter_0:
+    # container_name: tag_filter
+    build:
+      context: ./containers/
+      dockerfile: tag_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - duplicates_filter_0
+      - duplicates_filter_1
+      - duplicates_filter_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  tag_filter_1:
+    # container_name: tag_filter
+    build:
+      context: ./containers/
+      dockerfile: tag_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - duplicates_filter_0
+      - duplicates_filter_1
+      - duplicates_filter_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  tag_filter_2:
+    # container_name: tag_filter
+    build:
+      context: ./containers/
+      dockerfile: tag_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - duplicates_filter_0
+      - duplicates_filter_1
+      - duplicates_filter_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  likes_filter_0:
+    # container_name: likes_filter
+    build:
+      context: ./containers/
+      dockerfile: likes_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - tag_filter_0
+      - tag_filter_1
+      - tag_filter_2
+      - max_day_filter_0
+      - max_day_filter_1
+      - max_day_filter_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  likes_filter_1:
+    # container_name: likes_filter
+    build:
+      context: ./containers/
+      dockerfile: likes_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - tag_filter_0
+      - tag_filter_1
+      - tag_filter_2
+      - max_day_filter_0
+      - max_day_filter_1
+      - max_day_filter_2
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  likes_filter_2:
+    # container_name: likes_filter
+    build:
+      context: ./containers/
+      dockerfile: likes_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      - tag_filter_0
+      - tag_filter_1
+      - tag_filter_2
+      - max_day_filter_0
+      - max_day_filter_1
+      - max_day_filter_2      
+    volumes:
+      - .data/config.ini:/root/config.ini
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+
+  duplicates_filter_0:
+    build:
+      context: ./containers/
+      dockerfile: duplicates_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/id_duplicate_files:/id_duplicate_files
+    environment:
+      - NODE_ID=0
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  duplicates_filter_1:
+    build:
+      context: ./containers/
+      dockerfile: duplicates_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/id_duplicate_files:/id_duplicate_files
+    environment:
+      - NODE_ID=1
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1
+
+  duplicates_filter_2:
+    build:
+      context: ./containers/
+      dockerfile: duplicates_filter/Dockerfile
+    # restart: on-failure
+    depends_on:
+      rabbitmq:
+         condition: service_healthy
+    volumes:
+      - .data/config.ini:/root/config.ini
+      - .data/id_duplicate_files:/id_duplicate_files
+    environment:
+      - NODE_ID=2
+      - PYTHONUNBUFFERED=1
+      # - COPIES=1

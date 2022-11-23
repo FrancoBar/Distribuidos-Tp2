@@ -2,7 +2,7 @@ import time
 import os
 import csv
 import fcntl
-from common import broadcast_copies
+# from common import broadcast_copies
 from common import middleware
 from common import utils
 from common import routing
@@ -10,48 +10,36 @@ from common import routing
 INVALID_AMOUNT = -1
 
 ID=os.environ['HOSTNAME']
-COPIES=int(os.environ['COPIES'])
+# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
-
-
 RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['input_exchange']
 OUTPUT_EXCHANGE = config['ALL_COUNTRIES_AGG']['output_exchange']
 OUTPUT_COLUMNS = config['ALL_COUNTRIES_AGG']['output_columns'].split(',')
-HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split(',')
 NODE_ID = config['ALL_COUNTRIES_AGG']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['ALL_COUNTRIES_AGG']['port'])
-FLOWS_AMOUNT = int(config['ALL_COUNTRIES_AGG']['flows_amount'])
 MIN_DAYS = int(config['ALL_COUNTRIES_AGG']['min_days'])
 
-PREVIOUS_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['ALL_COUNTRIES_AGG']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['next_stage_name'] # Hacer un for de las etapas anteriores
+CURRENT_STAGE_NAME = config['ALL_COUNTRIES_AGG']['current_stage_name']
+PREVIOUS_STAGE_AMOUNT = int(config['ALL_COUNTRIES_AGG']['previous_stage_amount'])
+HASHING_ATTRIBUTES = config['ALL_COUNTRIES_AGG']['hashing_attributes'].split('|')
+NEXT_STAGE_AMOUNTS = config['ALL_COUNTRIES_AGG']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['ALL_COUNTRIES_AGG']['next_stage_name'].split(',')
 
-# aux_client_id = 'generic_client_id'
-stages_rounting_data = []
-
-
-# next_stages_names = stage_data["next_stage_name"]
-# hashing_attributes = stage_data["hashing_attributes"]
-# next_stage_amount = stage_data["next_stage_amount"]
-
-
-def router(message):
-    return routing.router_iter(message, CONTROL_ROUTE_KEY, stages_rounting_data)
+routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 class CountriesAmountFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, f'ALL_COUNTRIES_AGG-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, router, self.process_received_message)
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
         self.clients_countries_amount = {} # key: client_id, value: countries_amount
+        self.sent_configs = set()
 
     def process_control_message(self, input_message):
         client_id = input_message['client_id']
@@ -61,12 +49,19 @@ class CountriesAmountFilter:
                 del self.clients_countries_amount[client_id]
                 del self.clients_countries_per_day[client_id]
                 del self.clients_received_eofs[client_id]
+                self.sent_configs.remove(client_id)
                 return input_message
             else:
                 return None
         else:
-            self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
-            return input_message
+            # print(f"BORRAR Me llego config de {client_id}")
+            if not (client_id in self.sent_configs):
+                # print(f"BORRAR setupee la configuracion de {client_id}")
+                self.sent_configs.add(client_id)
+                self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
+                return input_message
+            return None
+            # return input_message
 
     def all_countries_agg(self, input_message):
         client_id = input_message['client_id']
@@ -109,6 +104,8 @@ class CountriesAmountFilter:
         client_id = input_message['client_id']
         message_to_send = None
 
+        # print("BORRAR soy all countries aggregator")
+
         # Initialization
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
@@ -118,10 +115,12 @@ class CountriesAmountFilter:
         if input_message['type'] == 'data':
             message_to_send = self.all_countries_agg(input_message)
         else:
+            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
 
         # Result communication
         if message_to_send != None:
+            print(f"BORRAR voy a enviar {message_to_send}")
             self.middleware.send(message_to_send)
 
 

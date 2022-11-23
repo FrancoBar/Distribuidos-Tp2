@@ -1,12 +1,12 @@
 import os
-from common import broadcast_copies
+# from common import broadcast_copies
 from common import middleware
 from common import utils
 from common import routing
 import logging
 
 ID=os.environ['HOSTNAME']
-COPIES=int(os.environ['COPIES'])
+# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -16,20 +16,25 @@ RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['DUPLICATES_FILTER']['input_exchange']
 OUTPUT_EXCHANGE = config['DUPLICATES_FILTER']['output_exchange']
 OUTPUT_COLUMNS = config['DUPLICATES_FILTER']['output_columns'].split(',')
-HASHING_ATTRIBUTES = config['DUPLICATES_FILTER']['hashing_attributes'].split(',')
+HASHING_ATTRIBUTES = config['DUPLICATES_FILTER']['hashing_attributes'].split('|')
 NODE_ID = config['DUPLICATES_FILTER']['node_id']
 CONTROL_ROUTE_KEY = config['GENERAL']['control_route_key']
-PORT = int(config['DUPLICATES_FILTER']['port'])
-FLOWS_AMOUNT = int(config['DUPLICATES_FILTER']['flows_amount'])
 
-PREVIOUS_STAGE_AMOUNT = config['DUPLICATES_FILTER']['previous_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_AMOUNT = config['DUPLICATES_FILTER']['next_stage_amount'] # Hacer un for de las etapas anteriores
-NEXT_STAGE_NAME = config['DUPLICATES_FILTER']['next_stage_name'] # Hacer un for de las etapas anteriores
-    
+CURRENT_STAGE_NAME = config['DUPLICATES_FILTER']['current_stage_name']
+PREVIOUS_STAGE_AMOUNT = int(config['DUPLICATES_FILTER']['previous_stage_amount'])
+NEXT_STAGE_AMOUNTS = config['DUPLICATES_FILTER']['next_stage_amount'].split(',')
+NEXT_STAGE_NAMES = config['DUPLICATES_FILTER']['next_stage_name'].split(',')
+
+# routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+
+# last_stage_router
+
 class DuplicationFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, OUTPUT_EXCHANGE, NODE_ID, 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.router, self.process_received_message)
+        # self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
+        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)                                                    
         self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
 
@@ -44,7 +49,7 @@ class DuplicationFilter:
             video_tuple = f"{video_id},{title},{category}"
             if not (video_tuple in client_set):
                 client_set.add(video_tuple)
-                input_message['case']='unique_pair'
+                input_message['producer']='unique_pair'
                 return {k: input_message[k] for k in OUTPUT_COLUMNS}
             else:
                 return None
@@ -65,6 +70,8 @@ class DuplicationFilter:
         client_id = input_message['client_id']
         message_to_send = None
 
+        # print("BORRAR me llego un mensaje al duplicates")
+
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
             self.clients_sent_videos[client_id] = set()
@@ -72,7 +79,9 @@ class DuplicationFilter:
         if input_message['type'] == 'data':
             message_to_send = self.filter_duplicates(input_message)
         else:
+            # print(f"BORRAR me llego {input_message}")
             message_to_send = self.process_control_message(input_message)
+            # print(f"BORRAR envio {input_message}")
 
         if message_to_send != None:
             self.middleware.send(message_to_send)

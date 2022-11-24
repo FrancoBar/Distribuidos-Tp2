@@ -576,7 +576,7 @@ services:
     volumes:
       - .data/config.ini:/root/config.ini
       - .data/id_duplicate_files:/id_duplicate_files
-      - .data/duplicates_filter_1:/root/storage
+      - .data/duplicates_filter_1/:/root/storage/
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1

@@ -50,13 +50,13 @@ class DuplicationFilter(general_filter.GeneralFilter):
     def __init__(self):
         # self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
         #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)                                                    
         # self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
         # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         # self.query_state = query_state.QueryState('./storage', read_value, write_value)
-        query_state = query_state.QueryState('/root/storage/', read_value, write_value)
-        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware, query_state)
+        query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
+        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
     def process_data_message(self, input_message):
             video_id = input_message['video_id']

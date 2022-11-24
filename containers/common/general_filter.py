@@ -30,10 +30,12 @@ class GeneralFilter:
             
 
     def _on_config(self, input_message):
+        client_id = input_message['client_id']
         client_values = self.query_state.get_values(client_id)
         client_values['config'] = None
 
     def _on_last_eof(self, input_message):
+        client_id = input_message['client_id']
         input_message['msg_id'] = self.query_state.get_id(client_id)
         input_message['origin'] = self.node_id
         self.middleware.send(input_message)

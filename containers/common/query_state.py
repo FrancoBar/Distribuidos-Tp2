@@ -52,7 +52,8 @@ class QueryState:
                                 update_table[origin] = in_id
                                 query['id'] = int(out_id)
                             else:
-                                log_type, origin, in_id, out_id, key, *value = args
+                                log_type, origin, in_id, out_id, key, *values = args
+                                value = ','.join(values)
                                 update_table[origin] = in_id
                                 query['id'] = int(out_id)
                                 self._read_value(query['values'], key, value)
@@ -121,7 +122,7 @@ class QueryState:
             return str(self._queries)
 
 def _default_read_value(query, key, value):
-    return value[0]
+    query[key] = value
 
 def _default_write_value(query, key, value):
     return str(value)

@@ -27,6 +27,14 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 ## Arquitectura de Software
 
+Para la ejecución de las tareas con alto throughput se consideró adecuado el planteo de una arquitectura del tipo pipeline, cuyas colas intermedias son gestionadas por un middleware de mensajes externo.
+
+Bastó con acompañar los mensajes con un id de query para separar el estado local de cada nodo y sumar una ganancia en paralelismo por la intercalación de operaciones entre solicitudes clientes.
+
+Los clientes se comunican por un socket TCP a un único punto de entrada y salida del sistema (y un único punto de falla). En una primer fase ingestan al sistema entrada por entrada los datos a procesar y  luego quedan a la espera de mensajes de respuesta.
+
+Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-monitors" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída. En cada nodo existe un proceso de prueba de vida ajeno al proceso principal, que consulta periódicamente su estado y responde a las consultas del health monitor apropiadamente. Dada su simpleza y tamaño, estos mensajes se intercambian por sockets UDP.
+
 
 
 ## Objetivos y Restricciones
@@ -39,7 +47,7 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 *DAG global de tareas*
 
-El DAG previo muestra una división lógica de tareas, sus dependencias y el flujo de datos (se excluyen señales de control). Se observa como solo un subconjunto de campos de los datos de entrada son necesarios para dar respuesta a las consultas planteadas y como la mayoría de dichos campos pueden descartarse tras su uso. Para la ejecución de las tareas se consideró adecuado el planteo de una arquitectura del tipo pipeline, con una correspondencia uno a uno entre etapas y tareas, con la salvedad del filtrado de videos trending en todos los países por 21 días, que finalmente se redujo a una sola etapa, para disminuir redundancia de operaciones y así mejorar el rendimiento.
+El DAG previo muestra una división lógica de tareas, sus dependencias y el flujo de datos (se excluyen señales de control). Se observa como solo un subconjunto de campos de los datos de entrada son necesarios para dar respuesta a las consultas planteadas y como la mayoría de dichos campos pueden descartarse tras su uso. Existe  una correspondencia uno a uno entre etapas del pipeline y tareas, con la salvedad del filtrado de videos trending en todos los países por 21 días, que finalmente se redujo a una sola etapa, para disminuir redundancia de operaciones.
 
 
 

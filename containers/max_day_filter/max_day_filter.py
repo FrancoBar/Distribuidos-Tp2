@@ -85,8 +85,6 @@ class MaxDayFilter:
         client_id = input_message['client_id']
         message_to_send = None
 
-        # print(f"BORRAR me llego el mensaje {input_message}")
-
         if not (client_id in self.clients_dates_views):
             self.clients_dates_views[client_id] = {}
             self.max_date[client_id] = [None, 0]

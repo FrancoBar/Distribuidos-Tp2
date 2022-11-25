@@ -33,6 +33,9 @@ class GeneralFilter:
         client_id = input_message['client_id']
         client_values = self.query_state.get_values(client_id)
         client_values['config'] = None
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
+        self.query_state.commit(client_id, input_message['origin'],str(input_message['msg_id']))
+
 
     def _on_last_eof(self, input_message):
         client_id = input_message['client_id']

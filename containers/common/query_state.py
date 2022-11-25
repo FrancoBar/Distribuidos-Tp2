@@ -81,7 +81,10 @@ class QueryState:
     def delete_query(self, query_id):
         if query_id in self._queries:
             del self._queries[query_id]
-            os.remove(self._storage + str(query_id) + FILE_TYPE)
+            try:
+                os.remove(self._storage + str(query_id) + FILE_TYPE)
+            except FileNotFoundError:
+                pass
 
     def get_values(self, query_id):
         return self._get_query(query_id)['values']

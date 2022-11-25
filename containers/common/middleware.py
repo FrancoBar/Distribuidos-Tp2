@@ -83,7 +83,6 @@ class _ExchangeQueueOut(_ChannelQueue):
     def send(self, message):
         if message and self._open:
             for route_key in self._output_route_key_gen(message):
-                # print(f"BORRAR envio a exchange {self._output_exchange} route {route_key}")
                 output_message = json.dumps(message)
                 self._channel.basic_publish(
                 exchange=self._output_exchange,

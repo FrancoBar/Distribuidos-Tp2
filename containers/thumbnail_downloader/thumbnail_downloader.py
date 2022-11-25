@@ -62,8 +62,6 @@ class ThumbnailsDownloader:
         client_id = input_message['client_id']
         message_to_send = None
 
-        # print(f"BORRAR Me llego el mensaje: {input_message}")
-
         # Initialization
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
@@ -72,13 +70,10 @@ class ThumbnailsDownloader:
         if input_message['type'] == 'data':
             message_to_send = self.download_thumbnail(input_message)
         else:
-            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
-            # print(f"BORRAR envio el mensaje {input_message}")
 
         # Message sending
         if message_to_send != None:
-            # print(f"BORRAR Voy a enviar el mensaje: {message_to_send}")
             self.middleware.send(message_to_send)
 
     def start_received_messages_processing(self):

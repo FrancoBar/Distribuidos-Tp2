@@ -54,14 +54,11 @@ class CountriesAmountFilter:
             else:
                 return None
         else:
-            # print(f"BORRAR Me llego config de {client_id}")
             if not (client_id in self.sent_configs):
-                # print(f"BORRAR setupee la configuracion de {client_id}")
                 self.sent_configs.add(client_id)
                 self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
                 return input_message
             return None
-            # return input_message
 
     def all_countries_agg(self, input_message):
         client_id = input_message['client_id']
@@ -104,8 +101,6 @@ class CountriesAmountFilter:
         client_id = input_message['client_id']
         message_to_send = None
 
-        # print("BORRAR soy all countries aggregator")
-
         # Initialization
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
@@ -115,12 +110,10 @@ class CountriesAmountFilter:
         if input_message['type'] == 'data':
             message_to_send = self.all_countries_agg(input_message)
         else:
-            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
 
         # Result communication
         if message_to_send != None:
-            print(f"BORRAR voy a enviar {message_to_send}")
             self.middleware.send(message_to_send)
 
 

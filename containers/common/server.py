@@ -92,7 +92,6 @@ class Server:
         while read_connection != None:
             accept_socket, next_client_number = read_connection
             if boolean_sigterm.should_keep_processing:
-                print(f"BORRAR Voy a procesar la conexion de client client_{next_client_number}")
                 self._connection_handler(accept_socket, f'client_{next_client_number}')
             accept_socket.close()
             read_connection = clients_queue.get()

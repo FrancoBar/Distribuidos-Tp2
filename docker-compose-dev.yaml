@@ -548,6 +548,7 @@ services:
 
 
   duplicates_filter_0:
+    container_name: duplicates_filter_0
     build:
       context: ./containers/
       dockerfile: duplicates_filter/Dockerfile
@@ -583,6 +584,7 @@ services:
       # - COPIES=1
 
   duplicates_filter_2:
+    container_name: duplicates_filter_2
     build:
       context: ./containers/
       dockerfile: duplicates_filter/Dockerfile

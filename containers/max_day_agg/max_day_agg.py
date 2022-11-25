@@ -59,16 +59,6 @@ class MaxDayAggregator:
                 return output_message
         return None
 
-
-# me llega con id i de la etapa anterior
-
-
-# envio j enviando la fecha maxima
-# envio j+1 enviando eof
-# commit
-
-# persisto id
-
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
         message_to_send = None
@@ -78,12 +68,9 @@ class MaxDayAggregator:
             self.clients_received_eofs[client_id] = 0
 
         if input_message['type'] == 'data':
-            # self.filter_max_agg(input_message, client_id)
-            print("BORRAR no deberia llegar a este caso")
+            raise Exception('Max day filter should only send data on eof: {input_message}')
         else:
-            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
-            # print(f"BORRAR envie el mensaje {input_message}")
 
         if message_to_send != None:
             self.middleware.send(message_to_send)

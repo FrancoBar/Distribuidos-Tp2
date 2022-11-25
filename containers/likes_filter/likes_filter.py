@@ -58,20 +58,13 @@ class LikesFilter:
         return None
 
     def process_received_message(self, input_message):
-        # print("BORRAR me llego un mensaje al likes filter")
         client_id = input_message['client_id']
         processing_result = None
 
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
-        
-        # # BORRAR
-        # if input_message['type'] == 'control':
-        #     print(f"BORRAR mensaje de control: {input_message}")
-
 
         if input_message['type'] == 'control':
-            # print(f"BORRAR me llego el mensaje {input_message}")
             processing_result = self.process_control_message(input_message)
         else:
             processing_result = self.filter_likes(input_message)

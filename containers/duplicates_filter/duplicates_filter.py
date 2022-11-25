@@ -36,10 +36,14 @@ def read_value(query, key, value):
         if not (key in query):
             query[key] = set()
         query[key].add(value)
-    else:
+    elif key == 'eof':
         if not (key in query):
             query[key] = 0
         query[key] += 1
+    elif key == 'config':
+        query[key] = value
+    else:
+        raise Exception(f'Unexpected key in log: {key}')
 
 def write_value(query, key, value):
     return str(value)

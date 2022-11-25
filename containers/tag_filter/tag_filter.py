@@ -3,6 +3,7 @@ import sys
 import os
 import multiprocessing
 from common import middleware
+from common import poisoned_middleware
 from common import utils
 from common import routing
 
@@ -27,6 +28,8 @@ class TagFilter:
     def __init__(self):
         self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
+        # self.middleware = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.sent_configs = set()
         self.counter = 0
@@ -45,10 +48,7 @@ class TagFilter:
                 self.sent_configs.remove(client_id)
                 return input_message
         else:
-            # print(f"BORRAR envio mensaje {input_message}")
-            # print(f"BORRAR Me llego el config {input_message}")
             if not (client_id in self.sent_configs):
-                # print(f"BORRAR Setupee config")
                 self.sent_configs.add(client_id)
                 return input_message
         return None
@@ -60,9 +60,7 @@ class TagFilter:
         if not (client_id in self.clients_received_eofs):
             self.clients_received_eofs[client_id] = 0
 
-        # print(f"BORRAR me llego el mensaje {input_message}")
         if input_message['type'] == 'control':
-            # print(f"BORRAR me llego el mensaje {input_message}")
             message_to_send = self.process_control_message(input_message)
         else:
             message_to_send = self.filter_tag(input_message)

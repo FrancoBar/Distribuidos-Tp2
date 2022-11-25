@@ -19,14 +19,10 @@ aux_client_id = 'generic_client_id'
 
 def process_connection(accepted_socket, client_id):
     handler = ClientHandler()
-    print(f"BORRAR voy a handleear la connection {client_id}")
-    # handler.handle_connection(accepted_socket, f'{CURRENT_STAGE_NAME}-{client_id}')
     handler.handle_connection(accepted_socket, client_id)
 
 class RequestListener:
     def __init__(self):
-        # self.server = server.Server(PORT, 1, self.connection_handler)
-        # self.server = server.Server(PORT, 1)
         self.server = server.Server(PORT, 1, process_connection)
 
     def run(self):

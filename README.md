@@ -1,35 +1,39 @@
-# TP1: Youtube Hall of Fame
-### Barreneche Franco
+# TP2: Tolerancia a Fallos
+ **Agustín Cambiano** ,**Barreneche Franco**
 
 
 
-## Ejecución
+## Índice
 
-Para ejecutar el sistema debe colocarse el archivo `config.ini`  provisto en la raíz del repositiorio, en la carpeta **.data** (crear si no existe). Crear también dentro de **.data** un directorio **datasets** con los archivos csv de países que el cliente procesará. Asegurarse de que los dos caracteres iniciales del nombre de los archivos sean únicos.
+[TOC]
 
-Iniciar el sistema con `sh run.sh` y detenerlo cuando acabe el procesamiento con `sh stop.sh`.
+## Alcance
 
-El cliente guardará los archivos resultantes de la ejecución en **.data/output**.
+El sistema deberá responder a los escenarios planteados en la sección correspondiente, presentando alta disponibilidad y  tolerancia a fallos.
 
+Una vez alcanzado un estado correcto por primera vez, ante el fallo de un nodo,  éste deberá recuperarse automáticamente y el conjunto de operaciones a su cargo deberá continuar. Se contemplará la preservación de datos relevantes al negocio, así como al control para la garantía de la correctitúd de los resultados.
 
+El sistema deberá procesar concurrentemente solicitudes de clientes, aunque se admitirá la posibilidad de limitar la cantidad de encargos gestionados en simultáneo.
 
-## Arquitectura
+Se desarrollarán protocolos propios tanto para la preservación de datos, como para su remoción cuando ya no sean necesarios. 
 
+No formará parte del alcance de éste trabajo la recuperación ante fallas de hardware de almacenamiento catastróficas, ni la preservación de conexiones o restauración del trabajo ante una eventual reconexión.
 
+Se relegará a un middleware de terceros las garantías vinculadas al manejo de mensajes, como ser preservación de mensajes ante la falla de uno de los extremos o la preservación del órden.
 
-### Escenarios
-
-![](./imgs/casos_de_uso.png)
-
-*Diagrama de casos de uso*
-
-
-
-La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
+Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API de Docker para el inicio, reinicio y detenimiento de containers, no así para obtener información del estado del sistema.
 
 
 
-### Vista Lógica
+## Arquitectura de Software
+
+
+
+## Objetivos y Restricciones
+
+
+
+## Vista Lógica
 
 ![](./imgs/dag.png)
 
@@ -49,21 +53,7 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 
 
-### Vista de Desarrollo
-
-![](./imgs/paquetes.png)
-
-*Diagrama de paquetes de request_listener*
-
-
-
-Como se adelantó en la sección anterior, casi todos los componentes del sistema se adhieren a la estructura de paquetes enseñada en el diagrama: Hacen uso de un filtro base del middleware, que se encarga de la declaración de colas y la interacción con ellas y que al recibir un mensaje invoca una callback especificada en su construcción.
-
-Actualmente, request_listener es el único que emplea colas TCP. En tal caso el middleware hace uso de módulos de transmisión y comunicación confiable de datos por sockets.  Server.py encapsula solo la lógica de escucha y aceptación de conexiones entrantes. 
-
-
-
-### Vista de Procesos
+## Vista de Procesos
 
 ![](./imgs/secuencia.png)
 
@@ -87,7 +77,25 @@ El diagrama explica claramente el protocolo, pero no da cuenta de porqué está 
 
 
 
-### Vista Física
+## Vista de Desarrollo
+
+![](./imgs/paquetes.png)
+
+*Diagrama de paquetes de request_listener*
+
+
+
+Como se adelantó en la sección anterior, casi todos los componentes del sistema se adhieren a la estructura de paquetes enseñada en el diagrama: Hacen uso de un filtro base del middleware, que se encarga de la declaración de colas y la interacción con ellas y que al recibir un mensaje invoca una callback especificada en su construcción.
+
+Actualmente, request_listener es el único que emplea colas TCP. En tal caso el middleware hace uso de módulos de transmisión y comunicación confiable de datos por sockets.  Server.py encapsula solo la lógica de escucha y aceptación de conexiones entrantes. 
+
+
+
+
+
+
+
+## Vista Física
 
 ![](./imgs/robustez.png)
 
@@ -108,3 +116,31 @@ Como puede observarse, la mayoría de los filtros están pensados para permitir 
 *Diagrama de despliegue*
 
 Claramente existe gran dependencia del middleware de colas, que en este caso es RabbitMQ. Por lo demás, cada nodo puede ser desplegado independientemente. Por la implementación, actualmente las copias de un mismo filtro deben estar en el mismo dispositivo (pues comparten archivos por volúmenes de docker), pero realmente ninguna de las tareas requiere acceso a la totalidad de los datos. Si se garantiza la afinidad de los datos, sea mediante un sistema de archivos distribuído o sencillamente con un routekey que dependa de un atributo de los datos (ej: video_id), entonces esta restricción sobre el escalamiento desaparecería.
+
+
+
+## Escenarios
+
+![](./imgs/casos_de_uso.png)
+
+*Diagrama de casos de uso*
+
+
+
+La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
+
+
+
+## Tamaño y Rendimiento
+
+
+
+
+
+## Ejecución
+
+Para ejecutar el sistema debe colocarse el archivo `config.ini`  provisto en la raíz del repositiorio, en la carpeta **.data** (crear si no existe). Crear también dentro de **.data** un directorio **datasets** con los archivos csv de países que el cliente procesará. Asegurarse de que los dos caracteres iniciales del nombre de los archivos sean únicos.
+
+Iniciar el sistema con `sh run.sh` y detenerlo cuando acabe el procesamiento con `sh stop.sh`.
+
+El cliente guardará los archivos resultantes de la ejecución en **.data/output**.

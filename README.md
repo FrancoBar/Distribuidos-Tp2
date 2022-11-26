@@ -39,6 +39,8 @@ Para el monitoreo del estado de los contenedores se dispuso un cluster de "healt
 
 ## Objetivos y Restricciones
 
+*Hablar de hash*
+
 
 
 ## Vista Lógica
@@ -48,6 +50,10 @@ Para el monitoreo del estado de los contenedores se dispuso un cluster de "healt
 *DAG global de tareas*
 
 El DAG previo muestra una división lógica de tareas, sus dependencias y el flujo de datos (se excluyen señales de control). Se observa como solo un subconjunto de campos de los datos de entrada son necesarios para dar respuesta a las consultas planteadas y como la mayoría de dichos campos pueden descartarse tras su uso. Existe  una correspondencia uno a uno entre etapas del pipeline y tareas, con la salvedad del filtrado de videos trending en todos los países por 21 días, que finalmente se redujo a una sola etapa, para disminuir redundancia de operaciones.
+
+
+
+*Incluir diag. estados de health-monitor*
 
 
 
@@ -63,6 +69,8 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 ## Vista de Procesos
 
+*Mejorar mismo caso*
+
 ![](./imgs/secuencia.png)
 
 *Diagrama de secuencia flujo de día máximo*
@@ -70,6 +78,10 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 
 El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio, mientras que los segundos pueden ser del tipo config o eof. La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido. A continuación se ahondará en el automensaje de Max Day Filter. 
+
+
+
+*Levantamiento de estado de archivo*
 
 
 

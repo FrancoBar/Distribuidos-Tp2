@@ -46,7 +46,6 @@ class LikesFilter(general_filter.GeneralFilter):
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
-        self.sent_configs = set() # TODO: agregar el control de enviado exponencial de configs
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
     def process_data_message(self, input_message):
@@ -65,16 +64,6 @@ class LikesFilter(general_filter.GeneralFilter):
             logging.error(input_message)
         finally:
             self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
-
-    def _on_config(self, input_message):
-        client_id = input_message['client_id']
-        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
-        if not (client_id in self.sent_configs):
-            self.sent_configs.add(client_id)
-            client_values = self.query_state.get_values(client_id)
-            client_values['config'] = 'config'
-            self.middleware.send(input_message)
-        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def start_received_messages_processing(self):
         self.middleware.run()

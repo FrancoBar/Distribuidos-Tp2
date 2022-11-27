@@ -28,14 +28,14 @@ class GeneralFilter:
         else:
             self._on_config(input_message)
             
-
     def _on_config(self, input_message):
         client_id = input_message['client_id']
-        client_values = self.query_state.get_values(client_id)
-        client_values['config'] = 'config'
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
-        self.query_state.commit(client_id, input_message['origin'],str(input_message['msg_id']))
-
+        client_values = self.query_state.get_values(client_id)
+        if not ('config' in client_values):
+            client_values['config'] = 'config'
+            self.middleware.send(input_message)
+        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def _on_last_eof(self, input_message):
         client_id = input_message['client_id']

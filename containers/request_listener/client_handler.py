@@ -40,11 +40,14 @@ class ClientHandler:
         self.entry_input = None
         self.entry_ouput = None
         self.client_id = None
+        self.process_id = None
 
     # def connection_handler(self, accept_socket, client_id):
-    def handle_connection(self, accept_socket, client_id):
+    def handle_connection(self, process_id, accept_socket, client_id):
         try:
             self.client_id = client_id
+            self.process_id = process_id
+            self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             # self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
@@ -65,7 +68,10 @@ class ClientHandler:
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
             self.entry_input.stop()
         input_message['client_id'] = self.client_id
+        input_message['origin'] = self.process_id
+        input_message['msg_id'] = self.msg_counter
         self.entry_input.send(input_message)
+        self.msg_counter += 1
 
     def answers_callback(self, input_message):
         if input_message['type'] == 'control':

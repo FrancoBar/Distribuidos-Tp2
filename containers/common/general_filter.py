@@ -32,7 +32,7 @@ class GeneralFilter:
     def _on_config(self, input_message):
         client_id = input_message['client_id']
         client_values = self.query_state.get_values(client_id)
-        client_values['config'] = None
+        client_values['config'] = 'config'
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
         self.query_state.commit(client_id, input_message['origin'],str(input_message['msg_id']))
 

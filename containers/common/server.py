@@ -40,8 +40,8 @@ class Server:
         next_client_number = 0
         processes_amount = min(psutil.cpu_count(), MAX_DESIRED_CONNECTIONS)
         child_processes = []
-        for _ in range(processes_amount):
-            p = mp.Process(target=self.process_connections, args=[connections_queue])
+        for i in range(processes_amount):
+            p = mp.Process(target=self.process_connections, args=[connections_queue, i])
             p.start()
             child_processes.append(p)
 
@@ -86,13 +86,13 @@ class Server:
         if self._prev_handler:
             self._prev_handler(signum, frame)
 
-    def process_connections(self, clients_queue):
+    def process_connections(self, clients_queue, process_id):
         read_connection = clients_queue.get()
         boolean_sigterm = BooleanSigterm()
         while read_connection != None:
             accept_socket, next_client_number = read_connection
             if boolean_sigterm.should_keep_processing:
-                self._connection_handler(accept_socket, f'client_{next_client_number}')
+                self._connection_handler(process_id, accept_socket, f'client_{next_client_number}')
             accept_socket.close()
             read_connection = clients_queue.get()
         print("Exited child process")

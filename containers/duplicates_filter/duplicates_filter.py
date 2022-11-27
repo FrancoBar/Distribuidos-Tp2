@@ -52,13 +52,8 @@ print(f"{os.listdir('./root')}")
 
 class DuplicationFilter(general_filter.GeneralFilter):
     def __init__(self):
-        # self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-        #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)                                                    
-        # self.clients_sent_videos = {} # key: client_id, value: sent_videos_tuples_set
-        # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        # self.query_state = query_state.QueryState('./storage', read_value, write_value)
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
@@ -69,16 +64,6 @@ class DuplicationFilter(general_filter.GeneralFilter):
             client_id = input_message['client_id']
             client_values = self.query_state.get_values(client_id)
             
-            # if not (client_id in self.clients_sent_videos):
-            #     self.clients_sent_videos[client_id] = set()
-            # client_set = self.clients_sent_videos[client_id]
-            # video_tuple = f"{video_id},{title},{category}"
-            # if not (video_tuple in client_set):
-            #     client_set.add(video_tuple)
-            #     input_message['producer']='unique_pair'
-            #     return {k: input_message[k] for k in OUTPUT_COLUMNS}
-            # else:
-            #     return None
             if not ('data' in client_values):
                 client_values['data'] = set()
             video_tuple = f"{video_id},{title},{category}"
@@ -86,14 +71,13 @@ class DuplicationFilter(general_filter.GeneralFilter):
                 client_values['data'].add(video_tuple)
                 input_message['producer']='unique_pair'
                 self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'data', video_tuple)
-                # return {k: input_message[k] for k in OUTPUT_COLUMNS}
                 message_data = {k: input_message[k] for k in OUTPUT_COLUMNS}
                 message_data['msg_id'] = self.query_state.get_id(client_id)
                 message_data['origin'] = NODE_ID
                 self.middleware.send(message_data)
             else:
                 self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
-            self.query_state.commit(client_id, input_message['origin'],str(input_message['msg_id']))
+            self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
 def main():
     wrapper = DuplicationFilter()

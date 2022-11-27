@@ -17,9 +17,9 @@ CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
 
 aux_client_id = 'generic_client_id'
 
-def process_connection(accepted_socket, client_id):
+def process_connection(process_id, accepted_socket, client_id):
     handler = ClientHandler()
-    handler.handle_connection(accepted_socket, client_id)
+    handler.handle_connection(process_id, accepted_socket, client_id)
 
 class RequestListener:
     def __init__(self):

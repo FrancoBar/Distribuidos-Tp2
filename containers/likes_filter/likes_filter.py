@@ -1,5 +1,6 @@
 import time
 from common import middleware
+from common import poisoned_middleware
 from common import utils
 from common import routing
 from common import query_state
@@ -44,7 +45,8 @@ class LikesFilter(general_filter.GeneralFilter):
         print(f"Estoy suscrito al topico {CURRENT_STAGE_NAME}-{NODE_ID}")
         middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
+        # middleware_instance = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
@@ -54,8 +56,6 @@ class LikesFilter(general_filter.GeneralFilter):
             self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
             if int(input_message['likes']) >= LIKES_MIN:
                 message_data = {k: input_message[k] for k in OUTPUT_COLUMNS}
-                # self.middleware.send({k: input_message[k] for k in OUTPUT_COLUMNS})
-                # print(f'Sent message: {message}')
                 message_data['msg_id'] = self.query_state.get_id(client_id)
                 message_data['origin'] = NODE_ID
                 self.middleware.send(message_data)

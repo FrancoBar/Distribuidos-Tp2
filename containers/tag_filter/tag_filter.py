@@ -46,9 +46,7 @@ class TagFilter(general_filter.GeneralFilter):
                                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         # middleware_instance = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
         #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
-        # self.counter = 0
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
     def process_data_message(self, input_message):

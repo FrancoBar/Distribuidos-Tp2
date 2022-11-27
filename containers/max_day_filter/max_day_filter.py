@@ -55,7 +55,7 @@ def read_value(query, key, value):
         stored_values = value.split(',')
         trending_date = stored_values[0]
         amount_delta = stored_values[1]
-        update_client_max_date(query, trending_date, amount_delta)
+        update_client_max_date(query, trending_date, int(amount_delta))
     elif key == 'eof':
         if not (key in query):
             query[key] = 0

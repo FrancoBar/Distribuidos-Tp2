@@ -430,7 +430,7 @@ services:
       # - COPIES=1
 
   tag_filter_0:
-    # container_name: tag_filter
+    container_name: tag_filter_0
     build:
       context: ./containers/
       dockerfile: tag_filter/Dockerfile
@@ -447,7 +447,7 @@ services:
       # - COPIES=1
 
   tag_filter_1:
-    # container_name: tag_filter
+    container_name: tag_filter_1
     build:
       context: ./containers/
       dockerfile: tag_filter/Dockerfile
@@ -464,7 +464,7 @@ services:
       # - COPIES=1
 
   tag_filter_2:
-    # container_name: tag_filter
+    container_name: tag_filter_2
     build:
       context: ./containers/
       dockerfile: tag_filter/Dockerfile

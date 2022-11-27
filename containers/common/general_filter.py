@@ -42,7 +42,9 @@ class GeneralFilter:
         input_message['msg_id'] = self.query_state.get_id(client_id)
         input_message['origin'] = self.node_id
         self.middleware.send(input_message)
-        self.query_state.delete_query(client_id)
+
+        # TODO: DESCOMENTAR
+        # self.query_state.delete_query(client_id)
 
     # Nothing passes the filter by default
     def process_data_message(self, input_message):

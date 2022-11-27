@@ -3,6 +3,8 @@ import sys
 import os
 import multiprocessing
 from common import middleware
+from common import query_state
+from common import general_filter
 from common import poisoned_middleware
 from common import utils
 from common import routing
@@ -24,52 +26,40 @@ NEXT_STAGE_NAMES = config['TAG_FILTER']['next_stage_name'].split(',')
 
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
-class TagFilter:
+def read_value(query, key, value):
+    if key == 'eof':
+        if not (key in query):
+            query[key] = 0
+        query[key] += 1
+    elif key == 'config':
+        query[key] = value
+    else:
+        raise Exception(f'Unexpected key in log: {key}')
+
+def write_value(query, key, value):
+    return str(value)
+
+class TagFilter(general_filter.GeneralFilter):
+# class TagFilter:
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        # self.middleware = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        # middleware_instance = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
         #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.sent_configs = set()
-        self.counter = 0
+        # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
+        query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
+        # self.counter = 0
+        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
-    def filter_tag(self, input_message):
+    def process_data_message(self, input_message):
+        client_id = input_message['client_id']
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
         if TARGET_TAG in input_message['tags']:
-            return {k: input_message[k] for k in OUTPUT_COLUMNS}
-        return None
-
-    def process_control_message(self, input_message):
-        client_id = input_message['client_id']
-        if input_message['case'] == 'eof':
-            self.clients_received_eofs[client_id] += 1
-            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
-                del self.clients_received_eofs[client_id]
-                self.sent_configs.remove(client_id)
-                return input_message
-        else:
-            if not (client_id in self.sent_configs):
-                self.sent_configs.add(client_id)
-                return input_message
-        return None
-            
-    def process_received_message(self, input_message):
-        client_id = input_message['client_id']
-        message_to_send = None
-
-        if not (client_id in self.clients_received_eofs):
-            self.clients_received_eofs[client_id] = 0
-
-        if input_message['type'] == 'control':
-            message_to_send = self.process_control_message(input_message)
-        else:
-            message_to_send = self.filter_tag(input_message)
-
-        if message_to_send != None:
-            message_to_send['msg_id'] = self.counter
+            message_to_send = {k: input_message[k] for k in OUTPUT_COLUMNS}
+            message_to_send['msg_id'] = self.query_state.get_id(client_id)
             message_to_send['origin'] = NODE_ID
-            self.counter += 1
             self.middleware.send(message_to_send)
+        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def start_received_messages_processing(self):
         self.middleware.run()

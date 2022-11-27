@@ -19,7 +19,7 @@ class GeneralFilter:
             if not ('eof' in client_values):
                 client_values['eof'] = 0
             client_values['eof'] += 1
-            self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'eof', client_values['eof'])
+            self._on_eof(input_message)
             
             if client_values['eof'] == self.previous_stage_amount:
                 self._on_last_eof(input_message)
@@ -36,6 +36,11 @@ class GeneralFilter:
             client_values['config'] = 'config'
             self.middleware.send(input_message)
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
+
+    def _on_eof(self, input_message):
+        client_id = input_message['client_id']
+        client_values = self.query_state.get_values(client_id)
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'eof', client_values['eof'])
 
     def _on_last_eof(self, input_message):
         client_id = input_message['client_id']

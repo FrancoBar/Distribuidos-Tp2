@@ -75,8 +75,6 @@ class MaxDayFilter(general_filter.GeneralFilter):
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
-    # On config es igual, lo que tenemos que modificar aca tambien es el on last eof para enviar mas data
-
     def _on_last_eof(self, input_message):
         client_id = input_message['client_id']
         client_values = self.query_state.get_values(client_id)
@@ -96,16 +94,6 @@ class MaxDayFilter(general_filter.GeneralFilter):
         trending_date = time.strftime('%Y-%m-%d',temp)
         amount_delta = int(input_message[TARGET_COLUMN])
 
-        # if not ('data' in client_values):
-        #     client_values['data'] = {'dates_views': {}, 'max_date': [None, 0]}
-        # if not (trending_date in client_values['data']['dates_views']):
-        #     client_values['data']['dates_views'][trending_date] = 0
-        # client_values['data']['dates_views'][trending_date] += amount_delta
-        # amount_new = client_values['data'][trending_date]
-
-        # if client_values['data']['max_date'][1] <= amount_new:
-        #     client_values['data']['max_date'][0] = trending_date
-        #     client_values['data']['max_date'][1] = amount_new
         update_client_max_date(client_values, trending_date, amount_delta)
 
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'data', f'{trending_date},{amount_delta}')

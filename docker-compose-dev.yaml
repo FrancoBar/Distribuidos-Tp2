@@ -391,6 +391,7 @@ services:
 
 
   max_day_agg_0:
+    container_name: max_day_agg_0
     build:
       context: ./containers/
       dockerfile: max_day_agg/Dockerfile
@@ -400,12 +401,14 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/max_day_agg/max_day_agg_0:/root/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   max_day_agg_1:
+    container_name: max_day_agg_1
     build:
       context: ./containers/
       dockerfile: max_day_agg/Dockerfile
@@ -415,12 +418,14 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/max_day_agg/max_day_agg_1:/root/storage
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   max_day_agg_2:
+    container_name: max_day_agg_2
     build:
       context: ./containers/
       dockerfile: max_day_agg/Dockerfile
@@ -430,6 +435,7 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/max_day_agg/max_day_agg_1:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1

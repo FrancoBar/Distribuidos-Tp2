@@ -3,6 +3,8 @@ import time
 from common import middleware
 from common import utils
 from common import routing
+from common import query_state
+from common import general_filter
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -20,60 +22,55 @@ PREVIOUS_STAGE_AMOUNT = int(config['MAX_AGG_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['MAX_AGG_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['MAX_AGG_FILTER']['next_stage_name'].split(',')
 
-# routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
+def read_value(query, key, value):
+    if key == 'eof':
+        if not (key in query):
+            query[key] = 0
+        query[key] += 1
+        read_data_list = value.split(',')
+        read_data_list[1] = int(read_data_list[1])
+        query['data'] = read_data_list
+    elif key == 'config':
+        query[key] = value
+    else:
+        raise Exception(f'Unexpected key in log: {key}')
 
-# last_stage_router
+def write_value(query, key, value):
+    day = value[0]
+    views = value[1]
+    return f'{day},{views}'
 
-class MaxDayAggregator:
+
+class MaxDayAggregator(general_filter.GeneralFilter):
     def __init__(self):
-        # self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-        #                                             CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)
-        self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.max_date = {} # key: client_id, value: [None, 0]
+        query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
+        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
-    # def filter_max_agg(self, input_message, client_id):
-    #     amount_new = int(input_message['view_count'])
-    #     if self.max_date[client_id][1] <= amount_new:
-    #         self.max_date[client_id][0] = input_message['date']
-    #         self.max_date[client_id][1] = amount_new
-    #     return None
-
-    def process_control_message(self, input_message):
+    def _on_eof(self, input_message):
         client_id = input_message['client_id']
-        if input_message['case'] == 'eof':
-            self.clients_received_eofs[client_id] += 1
-            amount_new = int(input_message['view_count'])
-            if self.max_date[client_id][1] <= amount_new:
-                self.max_date[client_id][0] = input_message['date']
-                self.max_date[client_id][1] = amount_new
+        client_values = self.query_state.get_values(client_id)
+        amount_new = int(input_message['view_count'])
+        if not ('data' in client_values):
+            client_values['data'] = [None, 0]
+        if client_values['data'][1] <= amount_new:
+            client_values['data'][0] = input_message['date']
+            client_values['data'][1] = amount_new
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'eof', client_values['data'])
+    # We take advantage of general_filter internal commit management when receiving an eof
 
-            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
-                # output_message = {'type':'data', 'case':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
-                output_message = {'type':'control', 'case': 'eof', 'producer':'max_date', 'client_id': client_id, 'date': self.max_date[client_id][0], 'view_count':self.max_date[client_id][1]}
-                del self.clients_received_eofs[client_id]
-                del self.max_date[client_id]
-                # self.middleware.send(output_message)
-                # return {'type':'control', 'case':'eof', 'client_id': client_id}
-                return output_message
-        return None
-
-    def process_received_message(self, input_message):
+    def _on_last_eof(self, input_message):
         client_id = input_message['client_id']
-        message_to_send = None
+        client_values = self.query_state.get_values(client_id)
+        output_message = {'type':'control', 'case': 'eof', 'producer':'max_date', 'client_id': client_id, 'date': client_values['data'][0], 'view_count': client_values['data'][1]}
+        output_message['msg_id'] = self.query_state.get_id(client_id)
+        output_message['origin'] = self.node_id
+        self.middleware.send(output_message)
+        self.query_state.delete_query(client_id)
 
-        if not (client_id in self.max_date):
-            self.max_date[client_id] = [None, 0]
-            self.clients_received_eofs[client_id] = 0
-
-        if input_message['type'] == 'data':
-            raise Exception('Max day filter should only send data on eof: {input_message}')
-        else:
-            message_to_send = self.process_control_message(input_message)
-
-        if message_to_send != None:
-            self.middleware.send(message_to_send)
+    def process_data_message(self, input_message):
+        raise Exception('Max day filter should only send data on eof: {input_message}')
 
     def start_received_messages_processing(self):
         self.middleware.run()

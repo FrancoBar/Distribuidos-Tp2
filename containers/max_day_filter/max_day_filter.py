@@ -43,7 +43,7 @@ def update_client_max_date(client_values, trending_date, amount_delta):
     if not (trending_date in client_values['data']['dates_views']):
         client_values['data']['dates_views'][trending_date] = 0
     client_values['data']['dates_views'][trending_date] += amount_delta
-    amount_new = client_values['data'][trending_date]
+    amount_new = client_values['data']['dates_views'][trending_date]
 
     if client_values['data']['max_date'][1] <= amount_new:
         client_values['data']['max_date'][0] = trending_date

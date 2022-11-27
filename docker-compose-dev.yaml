@@ -336,6 +336,7 @@ services:
       # - COPIES=1
 
   max_day_filter_0:
+    container_name: max_day_filter_0
     build:
       context: ./containers/
       dockerfile: max_day_filter/Dockerfile
@@ -353,6 +354,7 @@ services:
       # - COPIES=1
 
   max_day_filter_1:
+    container_name: max_day_filter_1
     build:
       context: ./containers/
       dockerfile: max_day_filter/Dockerfile
@@ -370,6 +372,7 @@ services:
       # - COPIES=1
 
   max_day_filter_2:
+    container_name: max_day_filter_2
     build:
       context: ./containers/
       dockerfile: max_day_filter/Dockerfile

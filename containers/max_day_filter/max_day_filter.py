@@ -7,8 +7,9 @@ import sys
 import logging
 import os
 import shutil
-# from common import broadcast_copies
 from common import middleware
+from common import query_state
+from common import general_filter
 from common import utils
 from common import routing
 
@@ -36,67 +37,79 @@ NEXT_STAGES_NAMES = config['MAX_DAY_FILTER']['next_stage_name'].split(',')
 # routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 routing_function = routing.generate_routing_function(None, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
-class MaxDayFilter:
+def update_client_max_date(client_values, trending_date, amount_delta):
+    if not ('data' in client_values):
+        client_values['data'] = {'dates_views': {}, 'max_date': [None, 0]}
+    if not (trending_date in client_values['data']['dates_views']):
+        client_values['data']['dates_views'][trending_date] = 0
+    client_values['data']['dates_views'][trending_date] += amount_delta
+    amount_new = client_values['data'][trending_date]
+
+    if client_values['data']['max_date'][1] <= amount_new:
+        client_values['data']['max_date'][0] = trending_date
+        client_values['data']['max_date'][1] = amount_new
+
+
+def read_value(query, key, value):
+    if key == 'data':
+        stored_values = value.split(',')
+        trending_date = stored_values[0]
+        amount_delta = stored_values[1]
+        update_client_max_date(query, trending_date, amount_delta)
+    elif key == 'eof':
+        if not (key in query):
+            query[key] = 0
+        query[key] += 1
+    elif key == 'config':
+        query[key] = value
+    else:
+        raise Exception(f'Unexpected key in log: {key}')
+
+def write_value(query, key, value):
+    return str(value)
+
+class MaxDayFilter(general_filter.GeneralFilter):
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.max_date = {} # key: client_id, value: [None, 0]
-        self.clients_dates_views = {} # key: client_id, value: (key: day, value: views sum)
-        self.sent_configs = set()
+        query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
+        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
-    def process_control_message(self, input_message):
+    # On config es igual, lo que tenemos que modificar aca tambien es el on last eof para enviar mas data
+
+    def _on_last_eof(self, input_message):
         client_id = input_message['client_id']
-        if input_message['case'] == 'eof':
-            self.clients_received_eofs[client_id] += 1
-            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
-                input_message['date'] = self.max_date[client_id][0]
-                input_message['view_count'] = self.max_date[client_id][1]
-                del self.clients_received_eofs[client_id]
-                del self.max_date[client_id]
-                del self.clients_dates_views[client_id]
-                self.sent_configs.remove(client_id)
-                return input_message
-        else:
-            if not (client_id in self.sent_configs):
-                self.sent_configs.add(client_id)
-                return input_message
-        return None
+        client_values = self.query_state.get_values(client_id)
+        input_message['msg_id'] = self.query_state.get_id(client_id)
+        input_message['origin'] = NODE_ID
+        input_message['date'] = client_values['data']['max_date'][0]
+        input_message['view_count'] = client_values['data']['max_date'][1]
+        self.middleware.send(input_message)
 
-    def filter_max_date(self, input_message):
+        self.query_state.delete_query(client_id)
+
+    def process_data_message(self, input_message):
         client_id = input_message['client_id']
-        client_dictionary = self.clients_dates_views[client_id]
-
-        # print(client_dictionary)
+        client_values = self.query_state.get_values(client_id)
 
         temp = time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')
         trending_date = time.strftime('%Y-%m-%d',temp)
         amount_delta = int(input_message[TARGET_COLUMN])
-        if not (trending_date in client_dictionary):
-            client_dictionary[trending_date] = 0
-        client_dictionary[trending_date] += amount_delta
-        amount_new = client_dictionary[trending_date]
 
-        if self.max_date[client_id][1] <= amount_new:
-            self.max_date[client_id][0] = trending_date
-            self.max_date[client_id][1] = amount_new 
+        # if not ('data' in client_values):
+        #     client_values['data'] = {'dates_views': {}, 'max_date': [None, 0]}
+        # if not (trending_date in client_values['data']['dates_views']):
+        #     client_values['data']['dates_views'][trending_date] = 0
+        # client_values['data']['dates_views'][trending_date] += amount_delta
+        # amount_new = client_values['data'][trending_date]
 
-    def process_received_message(self, input_message):
-        client_id = input_message['client_id']
-        message_to_send = None
+        # if client_values['data']['max_date'][1] <= amount_new:
+        #     client_values['data']['max_date'][0] = trending_date
+        #     client_values['data']['max_date'][1] = amount_new
+        update_client_max_date(client_values, trending_date, amount_delta)
 
-        if not (client_id in self.clients_dates_views):
-            self.clients_dates_views[client_id] = {}
-            self.max_date[client_id] = [None, 0]
-            self.clients_received_eofs[client_id] = 0
-
-        if input_message['type'] == 'data':
-            self.filter_max_date(input_message)
-        else:
-            message_to_send = self.process_control_message(input_message)
-
-        if message_to_send != None:
-            self.middleware.send(message_to_send)
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'data', f'{trending_date},{amount_delta}')
+        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def start_received_messages_processing(self):
         self.middleware.run()

@@ -346,6 +346,7 @@ services:
       - max_day_agg_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/max_day_filter/max_day_filter_0:/root/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
@@ -362,6 +363,7 @@ services:
       - max_day_agg_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/max_day_filter/max_day_filter_1:/root/storage
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
@@ -378,6 +380,7 @@ services:
       - max_day_agg_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/max_day_filter/max_day_filter_2:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
@@ -441,6 +444,7 @@ services:
       - duplicates_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/tag_filter/tag_filter_0:/root/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
@@ -458,6 +462,7 @@ services:
       - duplicates_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/tag_filter/tag_filter_1:/root/storage
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
@@ -475,6 +480,7 @@ services:
       - duplicates_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/tag_filter/tag_filter_2:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1

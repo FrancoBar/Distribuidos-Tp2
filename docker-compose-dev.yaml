@@ -251,7 +251,6 @@ services:
       - thumbnail_downloader_1
       - thumbnail_downloader_2
     volumes:
-      - .data/id_country_files:/id_country_files
       - .data/config.ini:/root/config.ini
     environment:
       - NODE_ID=0
@@ -268,7 +267,6 @@ services:
       - thumbnail_downloader_1
       - thumbnail_downloader_2
     volumes:
-      - .data/id_country_files:/id_country_files
       - .data/config.ini:/root/config.ini
     environment:
       - NODE_ID=1
@@ -285,7 +283,6 @@ services:
       - thumbnail_downloader_1
       - thumbnail_downloader_2
     volumes:
-      - .data/id_country_files:/id_country_files
       - .data/config.ini:/root/config.ini
     environment:
       - NODE_ID=2
@@ -349,7 +346,6 @@ services:
       - max_day_agg_2
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/date_files:/date_files
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
@@ -366,7 +362,6 @@ services:
       - max_day_agg_2
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/date_files:/date_files
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
@@ -383,7 +378,6 @@ services:
       - max_day_agg_2
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/date_files:/date_files
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
@@ -487,7 +481,7 @@ services:
       # - COPIES=1
 
   likes_filter_0:
-    # container_name: likes_filter
+    container_name: likes_filter_0
     build:
       context: ./containers/
       dockerfile: likes_filter/Dockerfile
@@ -501,13 +495,14 @@ services:
       - max_day_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/likes_filter/likes_filter_0:/root/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   likes_filter_1:
-    # container_name: likes_filter
+    container_name: likes_filter_1
     build:
       context: ./containers/
       dockerfile: likes_filter/Dockerfile
@@ -521,13 +516,14 @@ services:
       - max_day_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/likes_filter/likes_filter_1:/root/storage
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   likes_filter_2:
-    # container_name: likes_filter
+    container_name: likes_filter_2
     build:
       context: ./containers/
       dockerfile: likes_filter/Dockerfile
@@ -541,6 +537,7 @@ services:
       - max_day_filter_2      
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/likes_filter/likes_filter_2:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
@@ -558,8 +555,7 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/id_duplicate_files:/id_duplicate_files
-      - .data/duplicates_filter_0:/root/storage
+      - .data/volumes/duplicates_filter/duplicates_filter_0:/root/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
@@ -576,8 +572,7 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/id_duplicate_files:/id_duplicate_files
-      - .data/duplicates_filter_1/:/root/storage/
+      - .data/volumes/duplicates_filter/duplicates_filter_1/:/root/storage/
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
@@ -594,8 +589,7 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/id_duplicate_files:/id_duplicate_files
-      - .data/duplicates_filter_2:/root/storage
+      - .data/volumes/duplicates_filter/duplicates_filter_2:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1

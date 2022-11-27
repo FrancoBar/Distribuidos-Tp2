@@ -26,53 +26,55 @@ NEXT_STAGE_NAMES = config['LIKES_FILTER']['next_stage_name'].split(',')
 
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
-class LikesFilter:
+def read_value(query, key, value):
+    if key == 'eof':
+        if not (key in query):
+            query[key] = 0
+        query[key] += 1
+    elif key == 'config':
+        query[key] = value
+    else:
+        raise Exception(f'Unexpected key in log: {key}')
+
+def write_value(query, key, value):
+    return str(value)
+
+class LikesFilter(general_filter.GeneralFilter):
     def __init__(self):
         print(f"Estoy suscrito al topico {CURRENT_STAGE_NAME}-{NODE_ID}")
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.sent_configs = set()
+        # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
+        query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
+        self.sent_configs = set() # TODO: agregar el control de enviado exponencial de configs
+        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
-
-    def filter_likes(self, input_message):
+    def process_data_message(self, input_message):
+        client_id = input_message['client_id']
         try:
+            self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
             if int(input_message['likes']) >= LIKES_MIN:
-                return {k: input_message[k] for k in OUTPUT_COLUMNS}
+                message_data = {k: input_message[k] for k in OUTPUT_COLUMNS}
+                # self.middleware.send({k: input_message[k] for k in OUTPUT_COLUMNS})
+                # print(f'Sent message: {message}')
+                message_data['msg_id'] = self.query_state.get_id(client_id)
+                message_data['origin'] = NODE_ID
+                self.middleware.send(message_data)
         except KeyError as e:
             logging.error('Entry lacks "likes" field.')
             logging.error(input_message)
-        
-        return None
+        finally:
+            self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def process_control_message(self, input_message):
+    def _on_config(self, input_message):
         client_id = input_message['client_id']
-        if input_message['case'] == 'eof':
-            self.clients_received_eofs[client_id] += 1
-            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
-                del self.clients_received_eofs[client_id]
-                self.sent_configs.remove(client_id)
-                return input_message
-        else:
-            if not (client_id in self.sent_configs):
-                self.sent_configs.add(client_id)
-                return input_message
-        return None
-
-    def process_received_message(self, input_message):
-        client_id = input_message['client_id']
-        processing_result = None
-
-        if not (client_id in self.clients_received_eofs):
-            self.clients_received_eofs[client_id] = 0
-
-        if input_message['type'] == 'control':
-            processing_result = self.process_control_message(input_message)
-        else:
-            processing_result = self.filter_likes(input_message)
-
-        if processing_result != None:
-            self.middleware.send(processing_result)
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
+        if not (client_id in self.sent_configs):
+            self.sent_configs.add(client_id)
+            client_values = self.query_state.get_values(client_id)
+            client_values['config'] = 'config'
+            self.middleware.send(input_message)
+        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def start_received_messages_processing(self):
         self.middleware.run()

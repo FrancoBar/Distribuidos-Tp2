@@ -6,6 +6,8 @@ import fcntl
 from common import middleware
 from common import utils
 from common import routing
+from common import query_state
+from common import general_filter
 
 INVALID_AMOUNT = -1
 
@@ -32,90 +34,99 @@ NEXT_STAGE_NAMES = config['ALL_COUNTRIES_AGG']['next_stage_name'].split(',')
 
 routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
-class CountriesAmountFilter:
+def read_value(query, key, value):
+    if key == 'data':
+        if not (key in query):
+            query[key] = {}
+        value_array = value.split(',')
+        video_id = value_array[0]
+        used_date = value_array[1]
+        country = value_array[2]
+        if not (video_id in query[key]):
+            query[key][video_id] = {}
+        if not (used_date in query[key][video_id]):
+            query[key][video_id][used_date] = set()
+        query[key][video_id][used_date].add(country)
+    elif key == 'eof':
+        if not (key in query):
+            query[key] = 0
+        query[key] += 1
+    elif key == 'config':
+        query[key] = int(value)
+    else:
+        raise Exception(f'Unexpected key in log: {key}')
+
+def write_value(query, key, value):
+    return str(value)
+
+class CountriesAmountFilter(general_filter.GeneralFilter):
     def __init__(self):
-        self.middleware = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        self.clients_received_eofs = {} # key: client_id, value: number of eofs received
-        self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
-        self.clients_countries_amount = {} # key: client_id, value: countries_amount
-        self.sent_configs = set()
+        # self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
+        query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
+        super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
-    def process_control_message(self, input_message):
+    def _on_config(self, input_message):
         client_id = input_message['client_id']
-        if input_message['case'] == 'eof':
-            self.clients_received_eofs[client_id] += 1
-            if self.clients_received_eofs[client_id] == PREVIOUS_STAGE_AMOUNT:
-                del self.clients_countries_amount[client_id]
-                del self.clients_countries_per_day[client_id]
-                del self.clients_received_eofs[client_id]
-                self.sent_configs.remove(client_id)
-                return input_message
-            else:
-                return None
-        else:
-            if not (client_id in self.sent_configs):
-                self.sent_configs.add(client_id)
-                self.clients_countries_amount[client_id] = int(input_message['amount_countries'])
-                return input_message
-            return None
+        countries_amount = int(input_message['amount_countries'])
+        self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', countries_amount)
+        client_values = self.query_state.get_values(client_id)
+        if not ('config' in client_values):
+            client_values['config'] = countries_amount
+            self.middleware.send(input_message)
+        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def all_countries_agg(self, input_message):
+    def process_data_message(self, input_message):
         client_id = input_message['client_id']
-        client_countries_amount = self.clients_countries_amount[client_id]
-        client_trending_days_dict = self.clients_countries_per_day[client_id]
+        client_values = self.query_state.get_values(client_id)
+        client_countries_amount = client_values['config']
+        # client_trending_days_dict = self.clients_countries_per_day[client_id]
+
+        if not ('data' in client_values):
+            client_values['data'] = {}
 
         temp=time.strptime(input_message['trending_date'], '%Y-%m-%dT%H:%M:%SZ')
         input_message['trending_date']=time.strftime('%Y-%m-%d',temp)
         used_date = input_message['trending_date']
         country = input_message['country']
         video_id = input_message['video_id']
-        output_message = None
 
-        if not (video_id in client_trending_days_dict):
-            client_trending_days_dict[video_id] = {}
-        video_dates = client_trending_days_dict[video_id]
+        if not (video_id in client_values['data']):
+            client_values['data'][video_id] = {}
+        # video_dates = client_trending_days_dict[video_id]
 
-        if not (used_date in video_dates):
-            video_dates[used_date] = set()
+        if not (used_date in client_values['data'][video_id]):
+            client_values['data'][video_id][used_date] = set()
 
-        if country in video_dates[used_date]:
-            return None
+        # if country in video_dates[used_date]:
+        #     return None
+        if country in client_values['data'][video_id][used_date]:
+            self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
+        else:
+            video_date_country = f'{video_id},{used_date},{country}'
+            self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'data', video_date_country)
                 
-        video_dates[used_date].add(country)
-        date_countries_amount = len(video_dates[used_date])
+        client_values['data'][video_id][used_date].add(country)
+        date_countries_amount = len(client_values['data'][video_id][used_date])
 
         all_countries_trending_days_amount = 0
-        for date in video_dates:
-            if len(video_dates[date]) == client_countries_amount:
+        for date in client_values['data'][video_id]:
+            if len(client_values['data'][video_id][date]) == client_countries_amount:
                 all_countries_trending_days_amount += 1
 
-        if all_countries_trending_days_amount > MIN_DAYS:
-            return None
-        elif (all_countries_trending_days_amount == MIN_DAYS) and (date_countries_amount == client_countries_amount):
-           output_message = {k: input_message[k] for k in OUTPUT_COLUMNS}
+        # if all_countries_trending_days_amount > MIN_DAYS:
+        #     output_message = None
+        # elif (all_countries_trending_days_amount == MIN_DAYS) and (date_countries_amount == client_countries_amount):
+        #    output_message = {k: input_message[k] for k in OUTPUT_COLUMNS}
 
-        return output_message
+        if (all_countries_trending_days_amount == MIN_DAYS) and (date_countries_amount == client_countries_amount):
+            output_message = {k: input_message[k] for k in OUTPUT_COLUMNS}
+            output_message['msg_id'] = self.query_state.get_id(client_id)
+            output_message['origin'] = NODE_ID
+            self.middleware.send(output_message)
 
-    def process_received_message(self, input_message):
-        client_id = input_message['client_id']
-        message_to_send = None
-
-        # Initialization
-        if not (client_id in self.clients_received_eofs):
-            self.clients_received_eofs[client_id] = 0
-            self.clients_countries_per_day[client_id] = {}
-
-        # Message processing
-        if input_message['type'] == 'data':
-            message_to_send = self.all_countries_agg(input_message)
-        else:
-            message_to_send = self.process_control_message(input_message)
-
-        # Result communication
-        if message_to_send != None:
-            self.middleware.send(message_to_send)
-
+        self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def start_received_messages_processing(self):
         self.middleware.run()

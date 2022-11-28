@@ -15,6 +15,48 @@ services:
       - NODE_ID=0
       - RABBITMQ_LOG_LEVELS=error
 
+  health_checker_0:
+    container_name: health_checker_0
+    build:
+      context: ./containers/
+      dockerfile: health_checker/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - ELECTION_ID=0
+      - ELECTION_REPLICAS_AMOUNT=3
+      - PYTHONUNBUFFERED=1
+      - SERVICES=health_checker_0,health_checker_1,health_checker_2
+      - RETRIES=3
+
+  health_checker_1:
+    container_name: health_checker_0
+    build:
+      context: ./containers/
+      dockerfile: health_checker/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - ELECTION_ID=1
+      - ELECTION_REPLICAS_AMOUNT=3
+      - PYTHONUNBUFFERED=1
+      - SERVICES=health_checker_0,health_checker_1,health_checker_2
+      - RETRIES=3
+
+  health_checker_2:
+    container_name: health_checker_0
+    build:
+      context: ./containers/
+      dockerfile: health_checker/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - ELECTION_ID=2
+      - ELECTION_REPLICAS_AMOUNT=3
+      - PYTHONUNBUFFERED=1
+      - SERVICES=health_checker_0,health_checker_1,health_checker_2
+      - RETRIES=3
+
   client_0:
     container_name: client_0
     build:
@@ -217,8 +259,6 @@ services:
     links:
       - request_listener
     # restart: on-failure
-
-
 
   request_listener:
     container_name: request_listener

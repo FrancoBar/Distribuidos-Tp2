@@ -51,7 +51,6 @@ class ClientHandler:
             self.process_id = process_id
             self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
-            self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
             
             open(STORAGE + client_id + query_state.FILE_TYPE, 'x')
             if accept_socket != None:

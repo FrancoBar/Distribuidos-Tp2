@@ -240,6 +240,7 @@ services:
       - likes_filter_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/request_listener:/root/storage
 
   all_countries_agg_0:
     container_name: all_countries_agg_0

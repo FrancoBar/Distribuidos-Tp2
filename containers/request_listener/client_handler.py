@@ -3,6 +3,7 @@ from common import middleware
 from common import utils
 from asyncio import IncompleteReadError
 from common import routing
+from common import query_state
 import os
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -51,6 +52,7 @@ class ClientHandler:
             self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
 
+            os.open(STORAGE + client_id + query_state.FILE_TYPE, mode = 'x')
             if accept_socket:
                 self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
                 
@@ -59,7 +61,7 @@ class ClientHandler:
 
                 logging.info('Answering entries')
                 self.entry_ouput.run()
-            else
+            else:
                 self.entry_input.send({'type':'control', 'case':'disconnect', 'client_id':client_id})
 
 

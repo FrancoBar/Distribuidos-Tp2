@@ -3,7 +3,7 @@ from common import middleware
 from common import utils
 from asyncio import IncompleteReadError
 from common import routing
-
+import os
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
@@ -11,7 +11,7 @@ utils.initialize_log(LOGGING_LEVEL)
 RABBIT_HOST = config['RABBIT']['address']
 INPUT_EXCHANGE = config['REQUEST_LISTENER']['input_exchange']
 OUTPUT_EXCHANGE = config['REQUEST_LISTENER']['output_exchange']
-
+STORAGE = config['REQUEST_LISTENER']['storage']
 
 OUTPUT_COLUMNS = config['REQUEST_LISTENER']['output_columns'].split(',')
 HASHING_ATTRIBUTES = config['REQUEST_LISTENER']['hashing_attributes'].split('|')
@@ -41,6 +41,7 @@ class ClientHandler:
         self.entry_ouput = None
         self.client_id = None
         self.process_id = None
+        self.last_received_msg = {}
 
     # def connection_handler(self, accept_socket, client_id):
     def handle_connection(self, process_id, accept_socket, client_id):
@@ -49,20 +50,30 @@ class ClientHandler:
             self.process_id = process_id
             self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
-            # self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
-            self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
-            
-            logging.info('Receiving entries')
-            self.entry_input.run()
 
-            logging.info('Answering entries')
-            self.entry_ouput.run()
+            if accept_socket:
+                self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
+                
+                logging.info('Receiving entries')
+                self.entry_input.run()
+
+                logging.info('Answering entries')
+                self.entry_ouput.run()
+            else
+                self.entry_input.send({'type':'control', 'case':'disconnect', 'client_id':client_id})
+
 
         except IncompleteReadError as e:
             logging.error('Client abruptly disconnected')
+            self.entry_input.send({'type':'control', 'case':'disconnect', 'client_id':client_id})
             logging.exception(e)
         except Exception as e:
             raise e
+        finally:
+            try:
+                os.remove(STORAGE + client_id + query_state.FILE_TYPE)
+            except FileNotFoundError:
+                pass
 
     def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
@@ -74,6 +85,13 @@ class ClientHandler:
         self.msg_counter += 1
 
     def answers_callback(self, input_message):
+        origin = input_message['origin']
+        msg_id = input_message['msg_id']
+        
+        if origin in self.last_received_msg and msg_id == self.last_received_msg[origin]:
+                return
+        self.last_received_msg[origin] = msg_id        
+
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':
                 if ('producer' in input_message) and (input_message['producer'] == 'max_date'):

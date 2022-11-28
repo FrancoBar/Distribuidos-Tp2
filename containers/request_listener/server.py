@@ -3,10 +3,12 @@ import logging
 import multiprocessing as mp
 import signal
 import psutil
+from common import query_state
 from common import utils
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
+STORAGE = config['REQUEST_LISTENER']['storage']
 utils.initialize_log(LOGGING_LEVEL)
 
 MAX_DESIRED_CONNECTIONS = int(config['SERVER']['max_desired_connections'])
@@ -19,6 +21,15 @@ class BooleanSigterm:
     def handle_sigterm(self, *args):
         self.should_keep_processing = False
 
+def _read_value(query, key, value):
+    if key not in query:
+        query[key] = []
+    query[key].append(value)
+
+def _write_value(query, key, value):
+    return str(value)
+
+
 class Server:
     def __init__(self, port, listen_backlog, connection_handler):
         # Initialize server socket
@@ -27,6 +38,8 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._connection_handler = connection_handler
+        
+        self._hanging_queries = list(filter(lambda file_name : file_name[-len(query_state.FILE_TYPE):] == query_state.FILE_TYPE, os.listdir(STORAGE_CONNECTIONS)))
         
         self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
 
@@ -45,11 +58,15 @@ class Server:
             p.start()
             child_processes.append(p)
 
+        for hanging_query_id in self._hanging_queries:
+            connections_queue.put((None, hanging_query_id))
+
         try:
             while self._open:
                 accept_socket = self._accept_new_connection()
                 # Envio el socket a la queue como (self.next_client_id, socket)
-                connections_queue.put((accept_socket, next_client_number))
+                current_client_id = f'client_{next_client_number}'
+                connections_queue.put((accept_socket, current_client_id))
                 next_client_number += 1
                 # self._connection_handler(accept_socket)
         except socket.error as e:
@@ -90,9 +107,9 @@ class Server:
         read_connection = clients_queue.get()
         boolean_sigterm = BooleanSigterm()
         while read_connection != None:
-            accept_socket, next_client_number = read_connection
+            accept_socket, next_client_id = read_connection
             if boolean_sigterm.should_keep_processing:
-                self._connection_handler(process_id, accept_socket, f'client_{next_client_number}')
+                self._connection_handler(process_id, accept_socket, next_client_id)
             accept_socket.close()
             read_connection = clients_queue.get()
         print("Exited child process")

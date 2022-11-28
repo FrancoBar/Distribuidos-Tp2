@@ -22,7 +22,7 @@ def hash_router(message, next_stages_data):
 
 
 def router_iter(message, control_route_key, next_stages_data): # message, control_route_key, [{"next_stage_name":..., "hashing_attributes":..., "next_stage_amount":...},...]
-    if message['type'] == 'control':
+    if message['type'] == 'control' or message['type'] == 'priority':
         # return list(map(lambda _: control_route_key, next_stages_data))
         return [control_route_key]
 

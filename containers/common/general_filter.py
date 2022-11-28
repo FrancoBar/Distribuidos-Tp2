@@ -49,12 +49,21 @@ class GeneralFilter:
         self.middleware.send(input_message)
         self.query_state.delete_query(client_id)
 
+    def process_priority_message(self, input_message):
+        if input_message['case'] == 'disconnect':
+            self.middleware.send(input_message)
+            self.query_state.delete_query(client_id)
+
     # Nothing passes the filter by default
     def process_data_message(self, input_message):
         pass
 
     def process_received_message(self, input_message):
         client_id = input_message['client_id']
+
+        if input_message['type'] == 'priority' and input_message['case'] == 'disconnect':
+            self.process_emergency_message(input_message)
+            return
 
         if self.query_state.is_last_msg(client_id, input_message['origin'], str(input_message['msg_id'])):
             return

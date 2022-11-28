@@ -242,6 +242,7 @@ services:
       - .data/config.ini:/root/config.ini
 
   all_countries_agg_0:
+    container_name: all_countries_agg_0
     build:
       context: ./containers/
       dockerfile: all_countries_agg/Dockerfile
@@ -252,12 +253,14 @@ services:
       - thumbnail_downloader_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/all_countries_agg/all_countries_agg_0:/root/storage
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   all_countries_agg_1:
+    container_name: all_countries_agg_1
     build:
       context: ./containers/
       dockerfile: all_countries_agg/Dockerfile
@@ -268,12 +271,14 @@ services:
       - thumbnail_downloader_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/all_countries_agg/all_countries_agg_1:/root/storage
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
       # - COPIES=1
 
   all_countries_agg_2:
+    container_name: all_countries_agg_2
     build:
       context: ./containers/
       dockerfile: all_countries_agg/Dockerfile
@@ -284,6 +289,7 @@ services:
       - thumbnail_downloader_2
     volumes:
       - .data/config.ini:/root/config.ini
+      - .data/volumes/all_countries_agg/all_countries_agg_2:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1

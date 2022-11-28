@@ -85,7 +85,7 @@ El flujo del cálculo del día máximo permite destacar aspectos relevantes del 
 
 
 
-![](./imgs/actividad.png)
+![](./imgs/actividades_recu.png)
 
 *Diagrama de actividades para broadcast entre copias*
 

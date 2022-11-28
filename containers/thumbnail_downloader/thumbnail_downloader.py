@@ -81,6 +81,10 @@ class ThumbnailsDownloader(general_filter.GeneralFilter):
             middleware.stop()
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
+    def process_priority_message(self, input_message):
+        if input_message['case'] == 'disconnect':
+            self.query_state.delete_query(client_id)
+
     def start_received_messages_processing(self):
         self.middleware.run()
 

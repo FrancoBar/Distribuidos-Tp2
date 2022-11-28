@@ -95,6 +95,7 @@ class DuplicationFilter(general_filter.GeneralFilter):
             self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def process_priority_message(self, input_message):
+        client_id = input_message['client_id']
         if input_message['case'] == 'disconnect':
             self.query_state.delete_query(client_id)
 

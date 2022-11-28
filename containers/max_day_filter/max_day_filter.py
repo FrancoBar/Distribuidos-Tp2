@@ -83,7 +83,6 @@ class MaxDayFilter(general_filter.GeneralFilter):
         input_message['date'] = client_values['data']['max_date'][0]
         input_message['view_count'] = client_values['data']['max_date'][1]
         self.middleware.send(input_message)
-
         self.query_state.delete_query(client_id)
 
     def process_data_message(self, input_message):

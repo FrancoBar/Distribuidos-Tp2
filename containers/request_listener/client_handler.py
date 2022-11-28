@@ -53,7 +53,6 @@ class ClientHandler:
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
             
-
             open(STORAGE + client_id + query_state.FILE_TYPE, 'x')
             if accept_socket != None:
                 self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
@@ -63,9 +62,9 @@ class ClientHandler:
 
                 logging.info('Answering entries')
                 self.entry_ouput.run()
+                
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-
 
         except IncompleteReadError as e:
             logging.error('Client abruptly disconnected')
@@ -75,6 +74,7 @@ class ClientHandler:
             raise e
         finally:
             try:
+                self.entry_input.delete_input_queue()
                 os.remove(STORAGE + client_id + query_state.FILE_TYPE)
             except FileNotFoundError:
                 pass
@@ -93,6 +93,7 @@ class ClientHandler:
             logging.info(f"Received disconnected")
             # self.entry_ouput.stop()
             return
+
         pipeline_origin = input_message['origin']
         producer = input_message['producer']
         origin = f'{pipeline_origin},{producer}'

@@ -53,6 +53,9 @@ class _ChannelQueue:
                 delivery_mode=2,
             ))
 
+    def delete(self):
+        self._channel.queue_delete(queue=self._queue_name)
+
     def close(self):
         self._open = False
         self._channel.stop_consuming()
@@ -125,6 +128,9 @@ class _TCPQueue:
             output_message = json.dumps(message)
             send_str(self._socket, output_message)
 
+    def delete(self):
+        pass
+
     def close(self):
         self._open = False
         self._socket.close()
@@ -148,6 +154,9 @@ class _BaseFilter:
 
     def stop(self):
         self._input_queue.stop_recv()
+
+    def delete_input_queue(self):
+        self._input_queue.delete()
 
     def sigterm_handler(self, signum, frame):
         logging.debug('SIGTERM received')

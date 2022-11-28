@@ -2,7 +2,6 @@ import time
 import os
 import csv
 import fcntl
-# from common import broadcast_copies
 from common import middleware
 from common import utils
 from common import routing
@@ -12,7 +11,6 @@ from common import general_filter
 INVALID_AMOUNT = -1
 
 ID=os.environ['HOSTNAME']
-# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -63,7 +61,6 @@ class CountriesAmountFilter(general_filter.GeneralFilter):
     def __init__(self):
         middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
                                                     CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
-        # self.clients_countries_per_day = {} # key: client_id, value: {key: video_id, value: { key: day, value: countries set}}
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 
@@ -81,7 +78,6 @@ class CountriesAmountFilter(general_filter.GeneralFilter):
         client_id = input_message['client_id']
         client_values = self.query_state.get_values(client_id)
         client_countries_amount = client_values['config']
-        # client_trending_days_dict = self.clients_countries_per_day[client_id]
 
         if not ('data' in client_values):
             client_values['data'] = {}
@@ -94,13 +90,10 @@ class CountriesAmountFilter(general_filter.GeneralFilter):
 
         if not (video_id in client_values['data']):
             client_values['data'][video_id] = {}
-        # video_dates = client_trending_days_dict[video_id]
 
         if not (used_date in client_values['data'][video_id]):
             client_values['data'][video_id][used_date] = set()
 
-        # if country in video_dates[used_date]:
-        #     return None
         if country in client_values['data'][video_id][used_date]:
             self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
         else:
@@ -114,11 +107,6 @@ class CountriesAmountFilter(general_filter.GeneralFilter):
         for date in client_values['data'][video_id]:
             if len(client_values['data'][video_id][date]) == client_countries_amount:
                 all_countries_trending_days_amount += 1
-
-        # if all_countries_trending_days_amount > MIN_DAYS:
-        #     output_message = None
-        # elif (all_countries_trending_days_amount == MIN_DAYS) and (date_countries_amount == client_countries_amount):
-        #    output_message = {k: input_message[k] for k in OUTPUT_COLUMNS}
 
         if (all_countries_trending_days_amount == MIN_DAYS) and (date_countries_amount == client_countries_amount):
             output_message = {k: input_message[k] for k in OUTPUT_COLUMNS}

@@ -51,9 +51,11 @@ class ClientHandler:
             self.process_id = process_id
             self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
+            self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
+            
 
-            os.open(STORAGE + client_id + query_state.FILE_TYPE, mode = 'x')
-            if accept_socket:
+            open(STORAGE + client_id + query_state.FILE_TYPE, 'x')
+            if accept_socket != None:
                 self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
                 
                 logging.info('Receiving entries')
@@ -62,12 +64,12 @@ class ClientHandler:
                 logging.info('Answering entries')
                 self.entry_ouput.run()
             else:
-                self.entry_input.send({'type':'control', 'case':'disconnect', 'client_id':client_id})
+                self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
 
 
         except IncompleteReadError as e:
             logging.error('Client abruptly disconnected')
-            self.entry_input.send({'type':'control', 'case':'disconnect', 'client_id':client_id})
+            self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
             logging.exception(e)
         except Exception as e:
             raise e
@@ -87,12 +89,19 @@ class ClientHandler:
         self.msg_counter += 1
 
     def answers_callback(self, input_message):
-        origin = input_message['origin']
+        if (input_message['type'] == 'priority'):
+            logging.info(f"Received disconnected")
+            # self.entry_ouput.stop()
+            return
+        pipeline_origin = input_message['origin']
+        producer = input_message['producer']
+        origin = f'{pipeline_origin},{producer}'
         msg_id = input_message['msg_id']
         
-        if origin in self.last_received_msg and msg_id == self.last_received_msg[origin]:
-                return
-        self.last_received_msg[origin] = msg_id        
+        if (origin in self.last_received_msg) and (msg_id == self.last_received_msg[origin]):
+            print(f"{input_message}")
+            return
+        self.last_received_msg[origin] = msg_id
 
         if input_message['type'] == 'control':
             if input_message['case'] == 'eof':

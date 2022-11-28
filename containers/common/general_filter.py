@@ -10,8 +10,6 @@ class GeneralFilter:
         client_values = self.query_state.get_values(client_id)
 
         if input_message['case'] == 'eof':
-            print(f"client values: {client_values}")
-
             if len(client_values) == 0:
                 self.query_state.delete_query(client_id)
                 return
@@ -50,6 +48,7 @@ class GeneralFilter:
         self.query_state.delete_query(client_id)
 
     def process_priority_message(self, input_message):
+        client_id = input_message['client_id']
         if input_message['case'] == 'disconnect':
             self.middleware.send(input_message)
             self.query_state.delete_query(client_id)
@@ -62,7 +61,7 @@ class GeneralFilter:
         client_id = input_message['client_id']
 
         if input_message['type'] == 'priority' and input_message['case'] == 'disconnect':
-            self.process_emergency_message(input_message)
+            self.process_priority_message(input_message)
             return
 
         if self.query_state.is_last_msg(client_id, input_message['origin'], str(input_message['msg_id'])):

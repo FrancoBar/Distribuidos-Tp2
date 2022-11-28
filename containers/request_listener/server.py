@@ -3,6 +3,7 @@ import logging
 import multiprocessing as mp
 import signal
 import psutil
+import os
 from common import query_state
 from common import utils
 
@@ -12,6 +13,7 @@ STORAGE = config['REQUEST_LISTENER']['storage']
 utils.initialize_log(LOGGING_LEVEL)
 
 MAX_DESIRED_CONNECTIONS = int(config['SERVER']['max_desired_connections'])
+STORAGE = config['REQUEST_LISTENER']['storage']
 
 class BooleanSigterm:
     def __init__(self):
@@ -20,15 +22,6 @@ class BooleanSigterm:
     
     def handle_sigterm(self, *args):
         self.should_keep_processing = False
-
-def _read_value(query, key, value):
-    if key not in query:
-        query[key] = []
-    query[key].append(value)
-
-def _write_value(query, key, value):
-    return str(value)
-
 
 class Server:
     def __init__(self, port, listen_backlog, connection_handler):
@@ -39,7 +32,7 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._connection_handler = connection_handler
         
-        self._hanging_queries = list(filter(lambda file_name : file_name[-len(query_state.FILE_TYPE):] == query_state.FILE_TYPE, os.listdir(STORAGE_CONNECTIONS)))
+        self._hanging_queries = list(filter(lambda file_name : file_name[-len(query_state.FILE_TYPE):] == query_state.FILE_TYPE, os.listdir(STORAGE)))
         
         self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
 

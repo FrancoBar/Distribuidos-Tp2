@@ -56,6 +56,15 @@ class ThumbnailsDownloader(general_filter.GeneralFilter):
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
+    def _on_last_eof(self, input_message):
+        client_id = input_message['client_id']
+        input_message['msg_id'] = self.query_state.get_id(client_id)
+        input_message['origin'] = self.node_id
+        input_message['producer'] = 'img'
+        self.middleware.send(input_message)
+        self.query_state.delete_query(client_id)
+
+
     def process_data_message(self, input_message):
         client_id = input_message['client_id']
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])

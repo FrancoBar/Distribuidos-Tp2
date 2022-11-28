@@ -6,7 +6,8 @@ from client_handler import ClientHandler
 from common import middleware
 from common import utils
 from common import routing
-from .server import Server
+from server import Server
+
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)

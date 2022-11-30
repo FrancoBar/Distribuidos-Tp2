@@ -6,6 +6,7 @@ from common import routing
 from common import query_state
 from common import general_filter
 import logging
+import sys
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -71,6 +72,11 @@ class LikesFilter(general_filter.GeneralFilter):
 def main():
     wrapper = LikesFilter()
     wrapper.start_received_messages_processing()
+    logging.info("EL BICHOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+    # del wrapper
+    wrapper.stop_health_process()
+    # logging.info(f'{sys.getrefcount(wrapper)}     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    logging.info("SIUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU")
 
 if __name__ == "__main__":
     main()

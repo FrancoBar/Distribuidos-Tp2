@@ -5,6 +5,7 @@ from asyncio import IncompleteReadError
 from common import routing
 from common import query_state
 import os
+import socket
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -66,7 +67,7 @@ class ClientHandler:
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
 
-        except IncompleteReadError as e:
+        except [IncompleteReadError, socket.error] as e:
             logging.error('Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
             logging.exception(e)

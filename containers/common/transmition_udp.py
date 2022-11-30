@@ -32,7 +32,7 @@ def recv_str(socket):
 	size, size_address = recv_uint32(socket)
 	string, string_address = _recv_sized(socket, size)
 	if size_address != string_address:
-	 	raise IncompleteReadError(size)
+		raise IncompleteReadError(size)
 	return string, size_address
 
 def send_str(socket, msg, address):

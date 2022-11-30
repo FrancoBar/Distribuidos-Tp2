@@ -122,6 +122,7 @@ class CountriesAmountFilter(general_filter.GeneralFilter):
 def main():
     wrapper = CountriesAmountFilter()
     wrapper.start_received_messages_processing()
+    wrapper.stop_health_process()
 
 if __name__ == "__main__":
     main()

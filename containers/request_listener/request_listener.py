@@ -5,6 +5,7 @@ from asyncio import IncompleteReadError
 from client_handler import ClientHandler
 from common import middleware
 from common import utils
+import multiprocessing as mp
 from common import routing
 from common import health_check
 from server import Server
@@ -24,20 +25,21 @@ def process_connection(process_id, accepted_socket, client_id):
 
 class RequestListener:
     def __init__(self):
-        self.health_check_process = multiprocessing.Process(target=health_check.echo_server, daemon=False)
+        self.health_check_process = mp.Process(target=health_check.echo_server, daemon=False)
         self.health_check_process.start()
         self.server = Server(PORT, 1, process_connection)
 
     def run(self):
         self.server.run()
 
-    def __del__(self):
+    def stop_health_process(self):
         self.health_check_process.kill()
         self.health_check_process.join()
 
 def main():
     wrapper = RequestListener()
     wrapper.run()
+    wrapper.stop_health_process()
 
 if __name__ == "__main__":
     main()

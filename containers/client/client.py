@@ -8,7 +8,7 @@ import socket
 import base64
 import signal
 from asyncio import IncompleteReadError
-from common import transmition
+from common import transmition_tcp
 
 USED_COLUMNS = ('type', 'categoryId', 'likes', 'title', 'tags', 'trending_date', 'video_id', 'view_count', 'country', 'thumbnail_link')
 ID_DIRECTORY='client_' + os.environ['NODE_ID'] + '/'
@@ -35,7 +35,7 @@ def file_process(file_name, client_socket, lock):
                 message = json.dumps(subset, indent = 4)
 
                 lock.acquire()
-                transmition.send_str(client_socket, message)
+                transmition_tcp.send_str(client_socket, message)
                 lock.release()
             except IncompleteReadError as e:
                 lock.release()
@@ -48,7 +48,7 @@ def file_process(file_name, client_socket, lock):
 def recv_answer(client_socket):
     while True:
         try:
-            message_str = transmition.recv_str(client_socket)
+            message_str = transmition_tcp.recv_str(client_socket)
             message = json.loads(message_str)
 
             if message['type'] == 'control' and message['case'] == 'eof':
@@ -90,7 +90,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
 data = json.dumps({'type': 'control', 'case':'config', 'amount_countries': len(csv_files_list)})
-transmition.send_str(client_socket, data)
+transmition_tcp.send_str(client_socket, data)
 
 print('Start sending...')
 lock = multiprocessing.Lock()
@@ -105,7 +105,7 @@ for p in process_list:
 
 print('Start receiving...')
 message = json.dumps({'type':'control', 'case':'eof'}, indent = 4)
-transmition.send_str(client_socket, message)
+transmition_tcp.send_str(client_socket, message)
 recv_answer(client_socket)
 client_socket.close()
 print('End')

@@ -102,6 +102,7 @@ class DuplicationFilter(general_filter.GeneralFilter):
 def main():
     wrapper = DuplicationFilter()
     wrapper.start_received_messages_processing()
+    wrapper.stop_health_process()
 
 if __name__ == "__main__":
     main()

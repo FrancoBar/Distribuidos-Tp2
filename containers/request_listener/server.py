@@ -1,11 +1,13 @@
 import socket
 import logging
 import multiprocessing as mp
+import threading as th
 import signal
 import psutil
 import os
 from common import query_state
 from common import utils
+import queue
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -18,7 +20,7 @@ STORAGE = config['REQUEST_LISTENER']['storage']
 class BooleanSigterm:
     def __init__(self):
         self.should_keep_processing = True
-        signal.signal(signal.SIGTERM, self.handle_sigterm)
+        # signal.signal(signal.SIGTERM, self.handle_sigterm)
     
     def handle_sigterm(self, *args):
         self.should_keep_processing = False
@@ -34,7 +36,7 @@ class Server:
         
         self._hanging_queries = list(filter(lambda file_name : file_name[-len(query_state.FILE_TYPE):] == query_state.FILE_TYPE, os.listdir(STORAGE)))
         
-        self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
+        # self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
 
     def run(self):
         """
@@ -42,12 +44,15 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
-        connections_queue = mp.Queue()
+        # connections_queue = mp.Queue()
+        connections_queue = queue.Queue()
         next_client_number = 0
         processes_amount = min(psutil.cpu_count(), MAX_DESIRED_CONNECTIONS)
         child_processes = []
         for i in range(processes_amount):
-            p = mp.Process(target=self.process_connections, args=[connections_queue, i])
+            # p = mp.Process(target=self.process_connections, args=[connections_queue, i])
+            p = th.Thread(target=self.process_connections, args=[connections_queue, i])
+            
             p.start()
             child_processes.append(p)
 

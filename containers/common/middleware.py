@@ -137,7 +137,7 @@ class _TCPQueue:
 
 class _BaseFilter:
     def __init__(self, input_queue, output_queue, filter_func):
-        self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
+        # self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
         self._input_queue = input_queue
         self._output_queue = output_queue
         self._filter_func = filter_func

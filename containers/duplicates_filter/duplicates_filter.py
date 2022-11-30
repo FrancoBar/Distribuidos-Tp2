@@ -6,6 +6,7 @@ from common import routing
 from common import query_state
 from common import general_filter
 import logging
+import time
 
 ID=os.environ['HOSTNAME']
 # COPIES=int(os.environ['COPIES'])
@@ -94,10 +95,10 @@ class DuplicationFilter(general_filter.GeneralFilter):
                 self.query_state.write(client_id, input_message['origin'], input_message['msg_id'])
             self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def process_priority_message(self, input_message):
-        client_id = input_message['client_id']
-        if input_message['case'] == 'disconnect':
-            self.query_state.delete_query(client_id)
+    # def process_priority_message(self, input_message):
+    #     client_id = input_message['client_id']
+    #     if input_message['case'] == 'disconnect':
+    #         self.query_state.delete_query(client_id)
 
 def main():
     wrapper = DuplicationFilter()

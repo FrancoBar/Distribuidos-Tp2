@@ -28,6 +28,7 @@ def file_process(file_name, client_socket, lock):
                 row = next(reader, None)
                 if not row:
                     print('Thread end')
+                    # client_socket.close()
                     break
                 row['type'] = 'data'
                 row['country'] = file_name[:2]
@@ -40,10 +41,13 @@ def file_process(file_name, client_socket, lock):
             except IncompleteReadError as e:
                 lock.release()
                 print(e)
+                # client_socket.close()
                 sys.exit(1)
             except Exception as e:
                 print(e)
+                # client_socket.close()
                 sys.exit(1)
+
 
 def recv_answer(client_socket):
     while True:
@@ -75,8 +79,11 @@ PORT = int(os.environ['SERVER_PORT'])
 def signal_handler(signum, frame):
     print('SIGTERM received')
     try:
-        sys.exit(0)
+        # client_socket.close()
+        client_socket.shutdown(socket.SHUT_RDWR)
         client_socket.close()
+        time.sleep(60000)
+        sys.exit(0)
     except SystemExit as e:
         os._exit(0)
 

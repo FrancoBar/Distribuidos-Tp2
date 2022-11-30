@@ -5,6 +5,8 @@ from asyncio import IncompleteReadError
 from common import routing
 from common import query_state
 import os
+import time
+
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
@@ -58,6 +60,9 @@ class ClientHandler:
                 
                 logging.info('Receiving entries')
                 self.entry_input.run()
+                print(client_id)
+                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                time.sleep(10)
 
                 logging.info('Answering entries')
                 self.entry_ouput.run()
@@ -65,18 +70,26 @@ class ClientHandler:
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
 
-        except IncompleteReadError as e:
-            logging.error('Client abruptly disconnected')
-            self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-            logging.exception(e)
-        except Exception as e:
-            raise e
-        finally:
             try:
-                self.entry_input.delete_input_queue()
+                logging.error(f"Primera copia de codigo, client id es: {client_id}")
+                # self.entry_input.delete_input_queue()
                 os.remove(STORAGE + client_id + query_state.FILE_TYPE)
             except FileNotFoundError:
                 pass
+            except Exception as e:
+                logging.exception(e)
+
+        except Exception as e:
+            logging.error(f'Client {client_id} abruptly disconnected')
+            logging.exception(e)
+            self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
+            try:
+                # self.entry_input.delete_input_queue()
+                os.remove(STORAGE + client_id + query_state.FILE_TYPE)
+            except FileNotFoundError:
+                pass
+            except Exception as e2:
+                logging.exception(e2)
 
     def entry_recv_callback(self, input_message):
         if input_message['type'] == 'control' and input_message['case'] == 'eof':
@@ -88,9 +101,9 @@ class ClientHandler:
         self.msg_counter += 1
 
     def answers_callback(self, input_message):
-        if (input_message['type'] == 'priority'):
+        if (input_message['type'] == 'priority') and (input_message['case'] == 'disconnected'):
             logging.info(f"Received disconnected")
-            # self.entry_ouput.stop()
+            self.entry_ouput.stop()
             return
 
         pipeline_origin = input_message['origin']
@@ -108,9 +121,13 @@ class ClientHandler:
                 if ('producer' in input_message) and (input_message['producer'] == 'max_date'):
                     input_message['type'] = 'data'
                     self.entry_ouput.send(input_message)
+                    # print(f"ENVIE UN MENSAJE DE EOF PARTICULAR {input_message}")
                 self.received_eofs += 1
                 if self.received_eofs == previous_stages_nodes:
                     self.entry_ouput.send({ 'type': 'control', 'case': 'eof' })
+                    # print("ENVIE EOF")
                     self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)
+            self.entry_ouput.send('XXXXX')
+            # print(f"ENVIE UN MENSAJE NORMAL {input_message}")

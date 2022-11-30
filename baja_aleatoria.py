@@ -24,4 +24,4 @@ while True:
 	subprocess.run(['docker', 'stop', chosen_container], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	
 	i = (i + 1) % len(FRASES)
-	time.sleep(45)
+	time.sleep(10)

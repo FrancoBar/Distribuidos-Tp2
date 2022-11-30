@@ -1,9 +1,13 @@
+from health_check import echo_server
+
 class GeneralFilter:
     def __init__(self, node_id, previous_stage_amount, middleware, query_state):
         self.node_id = node_id
         self.previous_stage_amount = previous_stage_amount
         self.middleware = middleware
         self.query_state = query_state
+        self.health_check_process = multiprocessing.Process(target=echo_server, daemon=False)
+        self.health_check_process.start()
 
     def process_control_message(self, input_message):
         client_id = input_message['client_id']
@@ -74,3 +78,7 @@ class GeneralFilter:
 
     def start_received_messages_processing(self):
         self.middleware.run()
+
+    def __del__(self):
+        self.health_check_process.kill()
+        self.health_check_process.join()

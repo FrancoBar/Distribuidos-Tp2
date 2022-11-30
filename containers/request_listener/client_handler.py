@@ -5,6 +5,7 @@ from asyncio import IncompleteReadError
 from common import routing
 from common import query_state
 import os
+
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)

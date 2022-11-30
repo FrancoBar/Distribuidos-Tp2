@@ -88,6 +88,8 @@ class ClientHandler:
                 os.remove(STORAGE + client_id + query_state.FILE_TYPE)
             except FileNotFoundError:
                 pass
+            except ConnectionResetError:
+                print("ENTRE AL MANEJO DE ConnectionResetError")
             except Exception as e2:
                 logging.exception(e2)
 

@@ -1,11 +1,16 @@
 import os
 import time
 import logging
-import multiprocessing
+import multiprocessing as mp
+from common import utils
 from common import health_check
 from election import leader_election
 
-health_check_process = multiprocessing.Process(target=health_check.echo_server, daemon=False)
+config = utils.initialize_config()
+LOGGING_LEVEL = config['GENERAL']['logging_level']
+utils.initialize_log(LOGGING_LEVEL)
+
+health_check_process = mp.Process(target=health_check.echo_server, daemon=False)
 health_check_process.start()
 
 logging.basicConfig(level=logging.DEBUG)

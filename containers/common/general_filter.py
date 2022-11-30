@@ -1,4 +1,7 @@
-from health_check import echo_server
+from .health_check import echo_server
+import multiprocessing as mp
+import logging
+import pika
 
 class GeneralFilter:
     def __init__(self, node_id, previous_stage_amount, middleware, query_state):
@@ -6,7 +9,7 @@ class GeneralFilter:
         self.previous_stage_amount = previous_stage_amount
         self.middleware = middleware
         self.query_state = query_state
-        self.health_check_process = multiprocessing.Process(target=echo_server, daemon=False)
+        self.health_check_process = mp.Process(target=echo_server, daemon=False)
         self.health_check_process.start()
 
     def process_control_message(self, input_message):
@@ -77,8 +80,11 @@ class GeneralFilter:
             self.process_control_message(input_message)
 
     def start_received_messages_processing(self):
-        self.middleware.run()
+        try:
+            self.middleware.run()
+        except pika.exceptions:
+            logging.error("CATCHEE LA EXCEPTION DE RABBIT EPICOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
-    def __del__(self):
+    def stop_health_process(self):
         self.health_check_process.kill()
         self.health_check_process.join()

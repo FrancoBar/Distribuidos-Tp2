@@ -27,6 +27,8 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 ## Arquitectura de Software
 
+*Agregar descripción a grandes rasgos (inspirarse en robustez)*
+
 Para la ejecución de las tareas con alto throughput se consideró adecuado el planteo de una arquitectura del tipo pipeline, cuyas colas intermedias son gestionadas por un middleware de mensajes externo.
 
 Bastó con acompañar los mensajes con un id de query para separar el estado local de cada nodo y sumar una ganancia en paralelismo por la intercalación de operaciones entre solicitudes clientes.
@@ -69,15 +71,23 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 ## Vista de Procesos
 
+*Monigote/actor de sistema*
+
+*Ajustar activación y media flecha (asincrónica)*
+
 *Mejorar mismo caso*
 
-![](./imgs/secuencia.png)
+![](./imgs/secuencia_max_day.png)
 
 *Diagrama de secuencia flujo de día máximo*
 
 
 
 El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio, mientras que los segundos pueden ser del tipo config o eof. La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido. A continuación se ahondará en el automensaje de Max Day Filter. 
+
+
+
+*Actividades mostrando funcionamiento mini de sistema*
 
 
 
@@ -123,7 +133,13 @@ Actualmente, request_listener es el único que emplea colas TCP. En tal caso el 
 
 *Diagrama de robustez*
 
- 
+
+
+*Pensar si sumar diagrama de recuperación o de persistencia*
+
+
+
+*Evaluar tolerancia a fallos y procesamiento en toda sección*
 
 Como puede observarse, la mayoría de los filtros están pensados para permitir su escalamiento. Max day agg y Request Listener son la excepción. Request Listener es un nodo crítico, no solo necesita ser único, sino que además su eventual falla puede dejar al resto de los componentes en un estado inválido. De modo que la caída de Request Listener conlleva el reinicio total del sistema. Por el contrario, Max day agg procesa un volumen de datos igual a la cantidad de copias de Max day filter y solo se activa intermitentemente. En el presente es también un punto de falla, pero podría solventarse fácilmente empleando una variable "máximo actual" en modo archivo. 
 
@@ -146,6 +162,8 @@ Claramente existe gran dependencia del middleware de colas, que en este caso es 
 *Diagrama de casos de uso*
 
 
+
+*Poner items en casos de uso C-(...), tablita describiendo nro, titulo, actor, flujo principal*
 
 La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
 

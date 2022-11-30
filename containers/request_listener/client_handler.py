@@ -79,6 +79,8 @@ class ClientHandler:
             except Exception as e:
                 logging.exception(e)
 
+        except ConnectionResetError:
+            print("ENTRE AL MANEJO DE ConnectionResetError")
         except Exception as e:
             logging.error(f'Client {client_id} abruptly disconnected')
             logging.exception(e)
@@ -88,8 +90,6 @@ class ClientHandler:
                 os.remove(STORAGE + client_id + query_state.FILE_TYPE)
             except FileNotFoundError:
                 pass
-            except ConnectionResetError:
-                print("ENTRE AL MANEJO DE ConnectionResetError")
             except Exception as e2:
                 logging.exception(e2)
 
@@ -131,5 +131,5 @@ class ClientHandler:
                     self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)
-            self.entry_ouput.send('XXXXX')
+            # self.entry_ouput.send('XXXXX')
             # print(f"ENVIE UN MENSAJE NORMAL {input_message}")

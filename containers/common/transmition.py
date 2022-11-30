@@ -34,10 +34,11 @@ def recv_str(socket):
 def send_str(socket, msg):
 	size = serialize_uint32(len(msg))
 	m = serialize_str(msg)
-	aux = socket.sendall(size + m)
-	if msg == json.dumps('XXXXX'):
-		print(f'BORRAR return de send_all: {aux}')
-	# socket.send(size + m)
+	socket.sendall(size + m)
+	# aux = socket.sendall(size + m)
+	# if msg == json.dumps('XXXXX'):
+	# 	print(f'BORRAR return de send_all: {aux}')
+	# # socket.send(size + m)
 
 def send_uint32(socket, msg):
 	m = serialize_uint32(msg)

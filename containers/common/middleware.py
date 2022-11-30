@@ -73,7 +73,7 @@ class _ExchangeQueueIn(_ChannelQueue):
             self._channel.queue_bind(exchange=input_exchange, queue=self._queue_name, routing_key=control_route_key)
     
     def send(self, message):
-        raise Error("Not implemented for _ExchangeQueueIn")
+        raise Exception("Not implemented for _ExchangeQueueIn")
 
 class _ExchangeQueueOut(_ChannelQueue):
     def __init__(self, channel, output_exchange, output_route_key_gen):
@@ -96,13 +96,13 @@ class _ExchangeQueueOut(_ChannelQueue):
                 ))
 
     def _on_message_callback(self, ch, method, properties, body):
-        raise Error("Not implemented for _ExchangeQueueOut")
+        raise Exception("Not implemented for _ExchangeQueueOut")
 
     def start_recv(self, on_message_callback):
-        raise Error("Not implemented for _ExchangeQueueOut")
+        raise Exception("Not implemented for _ExchangeQueueOut")
 
     def stop_recv(self):
-        raise Error("Not implemented for _ExchangeQueueOut")
+        raise Exception("Not implemented for _ExchangeQueueOut")
 
 class _TCPQueue:
     def __init__(self, socket):
@@ -165,8 +165,9 @@ class _BaseFilter:
             self._prev_handler(signum, frame)
 
 class _ConnectionFilter(_BaseFilter):
-    def __init__(self, input_queue, output_queue, filter_func):
+    def __init__(self, connection, input_queue, output_queue, filter_func):
         super().__init__(input_queue, output_queue,filter_func)
+        self._connection = connection
     
     def sigterm_handler(self, signum, frame):
         super().sigterm_handler(signum, frame)
@@ -177,9 +178,10 @@ class _ConnectionFilter(_BaseFilter):
 
 class ChannelChannelFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_queue, output_queue, filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = connection.channel()
         super().__init__(
+            connection,
             _ChannelQueue(channel, input_queue),
             _ChannelQueue(channel, output_queue),
             filter_func
@@ -187,9 +189,10 @@ class ChannelChannelFilter(_ConnectionFilter):
 
 class ExchangeExchangeFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_exchange, input_route_key, control_route_key, output_exchange, output_route_key_gen,  filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = connection.channel()
         super().__init__(
+            connection,
             _ExchangeQueueIn(channel, input_exchange, input_route_key, control_route_key),
             _ExchangeQueueOut(channel, output_exchange, output_route_key_gen),
             filter_func
@@ -197,9 +200,10 @@ class ExchangeExchangeFilter(_ConnectionFilter):
 
 class TCPChannelFilter(_ConnectionFilter):
     def __init__(self, middleware_host, socket, output_queue, filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = connection.channel()
         super().__init__(
+            connection,
             _TCPQueue(socket),
             _ChannelQueue(channel, output_queue),
             filter_func
@@ -207,9 +211,10 @@ class TCPChannelFilter(_ConnectionFilter):
 
 class ChannelTCPFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_queue, socket, filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = connection.channel()
         super().__init__(
+            connection,
             _ChannelQueue(channel, input_queue),
             _TCPQueue(socket),
             filter_func
@@ -217,9 +222,10 @@ class ChannelTCPFilter(_ConnectionFilter):
 
 class TCPExchangeFilter(_ConnectionFilter):
     def __init__(self, middleware_host, socket, output_exchange, output_route_key_gen, filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = connection.channel()
         super().__init__(
+            connection,
             _TCPQueue(socket),
             _ExchangeQueueOut(channel, output_exchange, output_route_key_gen),
             filter_func
@@ -227,9 +233,10 @@ class TCPExchangeFilter(_ConnectionFilter):
 
 class ExchangeTCPFilter(_ConnectionFilter):
     def __init__(self, middleware_host, input_exchange, input_route_key, control_route_key, socket, filter_func):
-        self._connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
-        channel = self._connection.channel()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=middleware_host))
+        channel = connection.channel()
         super().__init__(
+            connection,
             _ExchangeQueueIn(channel, input_exchange, input_route_key, control_route_key),
             _TCPQueue(socket),
             filter_func

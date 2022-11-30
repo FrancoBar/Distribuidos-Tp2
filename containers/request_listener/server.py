@@ -31,9 +31,7 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._connection_handler = connection_handler
-        
         self._hanging_queries = list(filter(lambda file_name : file_name[-len(query_state.FILE_TYPE):] == query_state.FILE_TYPE, os.listdir(STORAGE)))
-        
         self._prev_handler = signal.signal(signal.SIGTERM, self.sigterm_handler)
 
     def run(self):
@@ -43,7 +41,6 @@ class Server:
         finishes, servers starts to accept new connections again
         """
         connections_queue = mp.Queue()
-        next_client_number = 0
         processes_amount = min(psutil.cpu_count(), MAX_DESIRED_CONNECTIONS)
         child_processes = []
         for i in range(processes_amount):
@@ -53,6 +50,10 @@ class Server:
 
         for hanging_query_id in self._hanging_queries:
             connections_queue.put((None, hanging_query_id))
+
+        hanging_clients_ids = list(map(lambda file_name : int(file_name[len('client_'):-len(query_state.FILE_TYPE)]), _hanging_queries))
+        # Set next_client_number so as to avoid collisions between disconnect and business processes
+        next_client_number = max(hanging_clients_ids) + 1 if len(hanging_clients_ids) > 0  else 0
 
         try:
             while self._open:

@@ -48,14 +48,18 @@ class ClientHandler:
 
     # def connection_handler(self, accept_socket, client_id):
     def handle_connection(self, process_id, accept_socket, client_id):
+
         try:
             self.client_id = client_id
             self.process_id = process_id
             self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             
-            open(STORAGE + client_id + query_state.FILE_TYPE, 'x')
             if accept_socket != None:
+                # Creates a file that represents the client session and allows to
+                # erase temporary states on a failure.
+                open(STORAGE + client_id + query_state.FILE_TYPE, 'x')
+
                 self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
                 
                 logging.info('Receiving entries')
@@ -66,7 +70,6 @@ class ClientHandler:
                 
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-
         except [IncompleteReadError, socket.error] as e:
             logging.error('Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})

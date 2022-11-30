@@ -22,6 +22,7 @@ services:
       dockerfile: health_checker/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - .data/config.ini:/root/config.ini
     environment:
       - ELECTION_ID=0
       - ELECTION_REPLICAS_AMOUNT=3
@@ -30,12 +31,13 @@ services:
       - RETRIES=3
 
   health_checker_1:
-    container_name: health_checker_0
+    container_name: health_checker_1
     build:
       context: ./containers/
       dockerfile: health_checker/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - .data/config.ini:/root/config.ini
     environment:
       - ELECTION_ID=1
       - ELECTION_REPLICAS_AMOUNT=3
@@ -44,12 +46,13 @@ services:
       - RETRIES=3
 
   health_checker_2:
-    container_name: health_checker_0
+    container_name: health_checker_2
     build:
       context: ./containers/
       dockerfile: health_checker/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - .data/config.ini:/root/config.ini
     environment:
       - ELECTION_ID=2
       - ELECTION_REPLICAS_AMOUNT=3

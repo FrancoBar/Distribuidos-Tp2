@@ -85,8 +85,7 @@ class ClientHandler:
                 self.entry_input.delete_input_queue()
                 os.remove(file_name)
                 print(f"BORRE EL ARCHIVO {file_name} EPICARDIUM")
-            except FileNotFoundError as e:
-                print(str(e))
+            except FileNotFoundError:
                 pass
 
     def entry_recv_callback(self, input_message):

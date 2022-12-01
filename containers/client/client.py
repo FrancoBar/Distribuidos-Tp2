@@ -45,7 +45,9 @@ def file_process(file_name, client_socket, lock):
                 print(e)
                 sys.exit(1)
             except Exception as e:
+                lock.release()
                 print(e)
+                print("BORRAR BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                 sys.exit(1)
 
 def recv_answer(client_socket):
@@ -70,6 +72,7 @@ def recv_answer(client_socket):
 
         except Exception as e:
             print(e)
+            print("BORRAR ADASDAKSDBGAKSDHGALKSDHALSHASJDHLASJDHLAKDHLAKSJDHLASDHALSKDHLASJDHALSHDALKHDLAKJDHALKSHDALKJH")
             sys.exit(1)
 
 HOST = os.environ['SERVER_HOST']

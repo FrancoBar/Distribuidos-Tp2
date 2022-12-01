@@ -26,6 +26,8 @@ PREVIOUS_STAGES_AMOUNTS = config['REQUEST_LISTENER']['previous_stage_amount'].sp
 NEXT_STAGE_AMOUNTS = config['REQUEST_LISTENER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
+IS_POISONED = os.environ['IS_POISONED'] == 'true'
+
 # aux_client_id = 'generic_client_id'
 
 # previous_stages_nodes = 0

@@ -8,6 +8,7 @@ import logging
 import os
 import shutil
 from common import middleware
+from common import poisoned_middleware
 from common import query_state
 from common import general_filter
 from common import utils
@@ -33,6 +34,8 @@ CURRENT_STAGE_NAME = config['MAX_DAY_FILTER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = int(config['MAX_DAY_FILTER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['MAX_DAY_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGES_NAMES = config['MAX_DAY_FILTER']['next_stage_name'].split(',')
+
+IS_POISONED = os.environ['IS_POISONED'] == 'true'
 
 # routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 routing_function = routing.generate_routing_function(None, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
@@ -70,8 +73,12 @@ def write_value(query, key, value):
 
 class MaxDayFilter(general_filter.GeneralFilter):
     def __init__(self):
-        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
+        if not IS_POISONED:
+            middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                        CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
+        else:
+            middleware_instance = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                        CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing_function, self.process_received_message)
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)
 

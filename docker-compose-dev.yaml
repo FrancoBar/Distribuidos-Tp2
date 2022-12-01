@@ -281,6 +281,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
     expose:
       - "25555"
@@ -311,6 +312,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   all_countries_agg_1:
@@ -329,6 +331,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   all_countries_agg_2:
@@ -347,6 +350,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
 
@@ -365,6 +369,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   thumbnail_downloader_1:
@@ -382,6 +387,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   thumbnail_downloader_2:
@@ -399,6 +405,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   max_day_filter_0:
@@ -417,6 +424,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   max_day_filter_1:
@@ -435,6 +443,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   max_day_filter_2:
@@ -453,6 +462,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
 
@@ -471,6 +481,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   max_day_agg_1:
@@ -488,6 +499,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   max_day_agg_2:
@@ -505,6 +517,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   tag_filter_0:
@@ -523,6 +536,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   tag_filter_1:
@@ -541,6 +555,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   tag_filter_2:
@@ -559,6 +574,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   likes_filter_0:
@@ -580,6 +596,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   likes_filter_1:
@@ -601,6 +618,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   likes_filter_2:
@@ -622,6 +640,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
 
@@ -640,6 +659,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   duplicates_filter_1:
@@ -657,6 +677,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1
 
   duplicates_filter_2:
@@ -674,4 +695,5 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
+      - IS_POISONED=false
       # - COPIES=1

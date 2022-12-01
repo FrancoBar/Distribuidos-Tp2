@@ -17,7 +17,6 @@ utils.initialize_log(LOGGING_LEVEL)
 PORT = int(config['REQUEST_LISTENER']['port'])
 CURRENT_STAGE_NAME = config['REQUEST_LISTENER']['current_stage_name']
 
-aux_client_id = 'generic_client_id'
 
 def process_connection(process_id, accepted_socket, client_id):
     handler = ClientHandler()

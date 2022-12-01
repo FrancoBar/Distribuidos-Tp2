@@ -4,6 +4,7 @@ import base64
 import logging
 # from common import broadcast_copies
 from common import middleware
+from common import poisoned_middleware
 from common import utils
 from common import routing
 from common import query_state
@@ -27,6 +28,8 @@ CURRENT_STAGE_NAME = config['THUMBNAIL_DOWNLOADER']['current_stage_name']
 PREVIOUS_STAGE_AMOUNT = int(config['THUMBNAIL_DOWNLOADER']['previous_stage_amount'])
 NEXT_STAGE_AMOUNTS = config['THUMBNAIL_DOWNLOADER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['THUMBNAIL_DOWNLOADER']['next_stage_name'].split(',')
+
+IS_POISONED = os.environ['IS_POISONED'] == 'true'
 
 def read_value(query, key, value):
     if key == 'eof':

@@ -51,7 +51,7 @@ class Server:
         for hanging_query_id in self._hanging_queries:
             connections_queue.put((None, hanging_query_id))
 
-        hanging_clients_ids = list(map(lambda file_name : int(file_name[len('client_'):-len(query_state.FILE_TYPE)]), _hanging_queries))
+        hanging_clients_ids = list(map(lambda file_name : int(file_name[len('client_'):-len(query_state.FILE_TYPE)]), self._hanging_queries))
         # Set next_client_number so as to avoid collisions between disconnect and business processes
         next_client_number = max(hanging_clients_ids) + 1 if len(hanging_clients_ids) > 0  else 0
 
@@ -104,7 +104,8 @@ class Server:
             accept_socket, next_client_id = read_connection
             if boolean_sigterm.should_keep_processing:
                 self._connection_handler(process_id, accept_socket, next_client_id)
-            accept_socket.close()
+            if accept_socket != None:
+                accept_socket.close()
             read_connection = clients_queue.get()
         print("Exited child process")
 

@@ -13,6 +13,9 @@ from common import transmition_tcp
 USED_COLUMNS = ('type', 'categoryId', 'likes', 'title', 'tags', 'trending_date', 'video_id', 'view_count', 'country', 'thumbnail_link')
 ID_DIRECTORY='client_' + os.environ['NODE_ID'] + '/'
 STORAGE='./output/' + ID_DIRECTORY
+SLEEP_TIME = int(os.environ['SLEEP_TIME'])
+
+time.sleep(SLEEP_TIME)
 
 if not os.path.exists(STORAGE):
     os.makedirs(STORAGE)

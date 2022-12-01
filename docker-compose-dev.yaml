@@ -70,6 +70,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -90,6 +91,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -111,6 +113,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -131,6 +134,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -151,6 +155,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -171,6 +176,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -191,6 +197,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -212,6 +219,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -232,6 +240,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets
@@ -253,6 +262,7 @@ services:
       - SERVER_PORT=25555
       - SERVER_HOST=request_listener
       - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
     volumes:
       - .data/output:/output
       - .data/datasets:/datasets

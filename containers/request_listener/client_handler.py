@@ -54,11 +54,12 @@ class ClientHandler:
             self.process_id = process_id
             self.msg_counter = 0
             self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
-            
+            file_name = STORAGE + client_id
             if accept_socket != None:
                 # Creates a file that represents the client session and allows to
                 # erase temporary states on a failure.
-                open(STORAGE + client_id + query_state.FILE_TYPE, 'x')
+                file_name += query_state.FILE_TYPE
+                open(file_name, 'x')
 
                 self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
                 
@@ -70,6 +71,8 @@ class ClientHandler:
                 
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
+                print("BORRAR ENTRE A ESTE CASO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                print(client_id)
         except [IncompleteReadError, socket.error] as e:
             logging.error('Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
@@ -78,9 +81,12 @@ class ClientHandler:
             raise e
         finally:
             try:
+                print(f"VOY A BORRAR EL ARCHIVO {file_name} EPICARDIUM")
                 self.entry_input.delete_input_queue()
-                os.remove(STORAGE + client_id + query_state.FILE_TYPE)
-            except FileNotFoundError:
+                os.remove(file_name)
+                print(f"BORRE EL ARCHIVO {file_name} EPICARDIUM")
+            except FileNotFoundError as e:
+                print(str(e))
                 pass
 
     def entry_recv_callback(self, input_message):

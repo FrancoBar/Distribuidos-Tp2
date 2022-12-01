@@ -1,5 +1,6 @@
 import logging
 from common import middleware
+from common import poisoned_middleware
 from common import utils
 from asyncio import IncompleteReadError
 from common import routing
@@ -56,7 +57,10 @@ class ClientHandler:
             self.client_id = client_id
             self.process_id = process_id
             self.msg_counter = 0
-            self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
+            if not IS_POISONED:
+                self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
+            else:
+                self.entry_input = poisoned_middleware.PoisonedTCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             file_name = STORAGE + client_id
             if accept_socket != None:
                 # Creates a file that represents the client session and allows to

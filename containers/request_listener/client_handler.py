@@ -6,6 +6,7 @@ from common import routing
 from common import query_state
 import os
 import socket
+import time
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -66,6 +67,9 @@ class ClientHandler:
                 logging.info('Receiving entries')
                 self.entry_input.run()
 
+                # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
+                # time.sleep(10)
+
                 logging.info('Answering entries')
                 self.entry_ouput.run()
                 
@@ -124,3 +128,4 @@ class ClientHandler:
                     self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)
+            # print("BORRAR ENVIE UN MENSAJE")

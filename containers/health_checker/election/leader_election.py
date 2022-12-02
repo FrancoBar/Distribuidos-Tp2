@@ -110,15 +110,10 @@ class LeaderElection:
 		try:
 			while self.open:
 				other_id, msg = self.recv(None)
-				if msg == MSG_LEADER:
-					self.leader_id = other_id
-					self.state = self._state_idle
-					break
-				else:
-					if msg == MSG_ELECTION and other_id < self.id:
-						self.send(MSG_ACK, other_id)
-					self.state = self._state_election
-					break
+				if msg == MSG_ELECTION and other_id < self.id:
+					self.send(MSG_ACK, other_id)
+				self.state = self._state_election
+				break
 		except socket.error:
 			pass
 		working_process.terminate()
@@ -128,7 +123,7 @@ class LeaderElection:
 		signal.signal(signal.SIGTERM, self.sigterm_handler_child)
 		while self.open:
 			self.broadcast(MSG_ALIVE)
-			time.sleep(.2)
+			time.sleep(0.1)
 
 	def _working_process(self):
 		signal.signal(signal.SIGTERM, self.sigterm_handler_child)

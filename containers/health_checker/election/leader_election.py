@@ -37,11 +37,9 @@ class LeaderElection:
 		signal.signal(signal.SIGTERM, self.sigterm_handler_parent)
 
 	def broadcast(self, msg):
-		other_id = 0
-		while other_id < self.replicas_amount:
+		for other_id in range(self.replicas_amount):
 			if other_id != self.id:
 				self.send(msg, other_id)
-			other_id = other_id + 1
 
 	def send(self, msg, other_id):
 		try:
@@ -53,11 +51,11 @@ class LeaderElection:
 		self.socket.settimeout(timeout)
 		msg, address = transmition_udp.recv_uint32(self.socket)
 		other_id = addr_to_id(address)
-		logging.info('From: {} Msg: {}'.format(other_id, DEBUG_MSG[msg]))
+		logging.debug('From: {} Msg: {}'.format(other_id, DEBUG_MSG[msg]))
 		return (other_id, msg)
 
 	def _state_election(self):
-		logging.info("Election")
+		logging.debug("Election")
 		self.broadcast(MSG_ELECTION)
 		received_ack = False
 		while self.open:
@@ -77,7 +75,7 @@ class LeaderElection:
 				else:
 					pass
 			except socket.timeout:
-				logging.info('TIMEOUT')
+				logging.debug('TIMEOUT')
 				if received_ack:
 					self.state = self._state_idle
 				else:
@@ -85,7 +83,7 @@ class LeaderElection:
 				break
 
 	def _state_idle(self):
-		logging.info("Idle")
+		logging.debug("Idle")
 		while self.open:
 			try:
 				other_id, msg = self.recv(TIMEOUT_IDLE)
@@ -98,26 +96,28 @@ class LeaderElection:
 				else:
 					pass
 			except socket.timeout:
-				logging.info('TIMEOUT')
+				logging.debug('TIMEOUT')
 				self.state = self._state_election
 				break
 
 	def _state_leader(self):
-		logging.info("Leader")
+		logging.debug("Leader")
 		self.broadcast(MSG_LEADER)
 		working_process = multiprocessing.Process(target=self._working_process, daemon=False)
 		working_process.start()
 		try:
-			while self.open:
-				other_id, msg = self.recv(None)
-				if msg == MSG_ELECTION and other_id < self.id:
-					self.send(MSG_ACK, other_id)
-				self.state = self._state_election
-				break
-		except socket.error:
-			pass
-		working_process.terminate()
-		working_process.join()
+			other_id, msg = self.recv(None)
+			if msg == MSG_ELECTION and other_id < self.id:
+				self.send(MSG_ACK, other_id)
+			self.state = self._state_election
+		except socket.error as e:
+			if self.open:
+				logging.exception(e)
+		except Exception as e:
+			logging.exception(e)
+		finally:
+			working_process.terminate()
+			working_process.join()
 
 	def _broadcast_process(self):
 		signal.signal(signal.SIGTERM, self.sigterm_handler_child)
@@ -139,14 +139,14 @@ class LeaderElection:
 			pass
 
 	def sigterm_handler_parent(self, signum, frame):
-		logging.info('Sigterm received')
+		logging.debug('Sigterm received')
 		self.open = False
 		self.socket.close()
 
 	def sigterm_handler_child(self, signum, frame):
+		logging.debug("sigterm_handler_child")
 		self.open = False
 		for child in multiprocessing.active_children():
-			child.terminate()
+			child.kill()
 			child.join()
-		# for child in multiprocessing.active_children():
 		sys.exit(0)

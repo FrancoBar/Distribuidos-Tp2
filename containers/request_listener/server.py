@@ -58,11 +58,9 @@ class Server:
         try:
             while self._open:
                 accept_socket = self._accept_new_connection()
-                # Envio el socket a la queue como (self.next_client_id, socket)
                 current_client_id = f'client_{next_client_number}'
                 connections_queue.put((accept_socket, current_client_id))
                 next_client_number += 1
-                # self._connection_handler(accept_socket)
         except socket.error as e:
             if self._open:
                 logging.exception(e)

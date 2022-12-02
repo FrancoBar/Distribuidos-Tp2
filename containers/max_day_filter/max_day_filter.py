@@ -15,7 +15,6 @@ from common import utils
 from common import routing
 
 ID=os.environ['HOSTNAME']
-# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -37,7 +36,6 @@ NEXT_STAGES_NAMES = config['MAX_DAY_FILTER']['next_stage_name'].split(',')
 
 IS_POISONED = os.environ['IS_POISONED'] == 'true'
 
-# routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 routing_function = routing.generate_routing_function(None, NEXT_STAGES_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
 
 def update_client_max_date(client_values, trending_date, amount_delta):

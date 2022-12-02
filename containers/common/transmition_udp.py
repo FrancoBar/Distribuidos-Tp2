@@ -15,8 +15,6 @@ def _recv_sized(socket, size):
 		n, address = socket.recvfrom_into(memoryview(buf)[pos:], size)
 		if n == 0:
 			raise IncompleteReadError(bytes(buf[:pos]), size)
-		# if prev_address and prev_address != address:
-		# 	raise IncompleteReadError(bytes(buf[:pos]), size)
 		prev_address = address
 		pos += n
 	return bytes(buf), prev_address

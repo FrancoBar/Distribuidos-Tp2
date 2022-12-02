@@ -2,7 +2,6 @@ import os
 import urllib.request
 import base64
 import logging
-# from common import broadcast_copies
 from common import middleware
 from common import poisoned_middleware
 from common import utils
@@ -11,7 +10,6 @@ from common import query_state
 from common import general_filter
 
 ID=os.environ['HOSTNAME']
-# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -46,8 +44,12 @@ def write_value(query, key, value):
 
 class ThumbnailsDownloader(general_filter.GeneralFilter):
     def __init__(self):
-        middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
-                                                    CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)
+        if not IS_POISONED:
+            middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                        CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)
+        else:
+            middleware_instance = poisoned_middleware.PoisonedExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 
+                                                        CONTROL_ROUTE_KEY, OUTPUT_EXCHANGE, routing.last_stage_router, self.process_received_message)
         self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         query_state_instance = query_state.QueryState('/root/storage/', read_value, write_value)
         super().__init__(NODE_ID, PREVIOUS_STAGE_AMOUNT, middleware_instance, query_state_instance)

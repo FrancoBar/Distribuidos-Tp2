@@ -17,24 +17,12 @@ def hash_router(message, next_stages_data):
         next_stage_amount = stage_data["next_stage_amount"]
         aux_routing_key = f'{next_stage_name}-{hash_fields(message, hashing_attributes) % next_stage_amount}'
         stage_routing_keys.append(aux_routing_key)
-    # print(f'Sent to: {stage_routing_keys}')
     return stage_routing_keys
 
 
 def router_iter(message, control_route_key, next_stages_data): # message, control_route_key, [{"next_stage_name":..., "hashing_attributes":..., "next_stage_amount":...},...]
     if message['type'] == 'control' or message['type'] == 'priority':
-        # return list(map(lambda _: control_route_key, next_stages_data))
         return [control_route_key]
-
-    # stage_routing_keys = []
-    # for stage_data in next_stages_data:
-    #     next_stage_name = stage_data["next_stage_name"]
-    #     hashing_attributes = stage_data["hashing_attributes"]
-    #     next_stage_amount = stage_data["next_stage_amount"]
-    #     aux_routing_key = f'{next_stage_name}-{hash_fields(message, hashing_attributes) % next_stage_amount}'
-    #     stage_routing_keys.append(aux_routing_key)
-    # # print(f'Sent to: {stage_routing_keys}')
-    # return stage_routing_keys
     return hash_router(message, next_stages_data)
 
 
@@ -46,7 +34,6 @@ def generate_routing_function(control_route_key, next_stage_names, hashing_attri
             "hashing_attributes": hashing_attributes[i].split(','), 
             "next_stage_amount": int(next_stage_amounts[i])
         })
-    # return lambda message: router_iter(message, control_route_key, stages_rounting_data)
     if control_route_key != None:
         return lambda message: router_iter(message, control_route_key, stages_routing_data)
     else:

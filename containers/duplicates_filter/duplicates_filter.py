@@ -1,5 +1,4 @@
 import os
-# from common import broadcast_copies
 from common import middleware
 from common import poisoned_middleware
 from common import utils
@@ -9,7 +8,6 @@ from common import general_filter
 import logging
 
 ID=os.environ['HOSTNAME']
-# COPIES=int(os.environ['COPIES'])
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -29,9 +27,6 @@ NEXT_STAGE_AMOUNTS = config['DUPLICATES_FILTER']['next_stage_amount'].split(',')
 NEXT_STAGE_NAMES = config['DUPLICATES_FILTER']['next_stage_name'].split(',')
 
 IS_POISONED = os.environ['IS_POISONED'] == 'true'
-# routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STAGE_NAMES, HASHING_ATTRIBUTES, NEXT_STAGE_AMOUNTS)
-
-# last_stage_router
 
 def read_value(query, key, value):
     if key == 'data':

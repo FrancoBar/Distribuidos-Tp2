@@ -42,7 +42,6 @@ def write_value(query, key, value):
     return str(value)
 
 class TagFilter(general_filter.GeneralFilter):
-# class TagFilter:
     def __init__(self):
         if not IS_POISONED:
             middleware_instance = middleware.ExchangeExchangeFilter(RABBIT_HOST, INPUT_EXCHANGE, f'{CURRENT_STAGE_NAME}-{NODE_ID}', 

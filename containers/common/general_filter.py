@@ -83,7 +83,7 @@ class GeneralFilter:
         try:
             self.middleware.run()
         except pika.exceptions:
-            logging.error("CATCHEE LA EXCEPTION DE RABBIT EPICOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+            pass
 
     def stop_health_process(self):
         self.health_check_process.kill()

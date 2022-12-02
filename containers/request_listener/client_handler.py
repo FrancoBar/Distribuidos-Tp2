@@ -29,9 +29,6 @@ NEXT_STAGE_NAMES = config['REQUEST_LISTENER']['next_stage_name'].split(',')
 
 IS_POISONED = os.environ['IS_POISONED'] == 'true'
 
-# aux_client_id = 'generic_client_id'
-
-# previous_stages_nodes = 0
 previous_stages_nodes = 1
 
 for amount in PREVIOUS_STAGES_AMOUNTS:
@@ -42,7 +39,6 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 
 class ClientHandler:
     def __init__(self):
-        # self.clients_received_eofs = {} # key: client_id, value: number of eofs received
         self.received_eofs = 0 # key: client_id, value: number of eofs received
         self.entry_input = None
         self.entry_ouput = None
@@ -50,7 +46,6 @@ class ClientHandler:
         self.process_id = None
         self.last_received_msg = {}
 
-    # def connection_handler(self, accept_socket, client_id):
     def handle_connection(self, process_id, accept_socket, client_id):
 
         try:
@@ -73,16 +68,11 @@ class ClientHandler:
                 logging.info('Receiving entries')
                 self.entry_input.run()
 
-                # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
-                # time.sleep(10)
-
                 logging.info('Answering entries')
                 self.entry_ouput.run()
                 
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-                print("BORRAR ENTRE A ESTE CASO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                print(client_id)
         except [IncompleteReadError, socket.error] as e:
             logging.error('Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
@@ -91,10 +81,8 @@ class ClientHandler:
             raise e
         finally:
             try:
-                print(f"VOY A BORRAR EL ARCHIVO {file_name} EPICARDIUM")
                 self.entry_input.delete_input_queue()
                 os.remove(file_name)
-                print(f"BORRE EL ARCHIVO {file_name} EPICARDIUM")
             except FileNotFoundError:
                 pass
 
@@ -110,7 +98,7 @@ class ClientHandler:
     def answers_callback(self, input_message):
         if (input_message['type'] == 'priority'):
             logging.info(f"Received disconnected")
-            # self.entry_ouput.stop()
+            self.entry_ouput.stop()
             return
 
         pipeline_origin = input_message['origin']
@@ -134,4 +122,3 @@ class ClientHandler:
                     self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)
-            # print("BORRAR ENVIE UN MENSAJE")

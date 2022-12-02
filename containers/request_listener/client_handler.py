@@ -107,7 +107,6 @@ class ClientHandler:
         msg_id = input_message['msg_id']
         
         if (origin in self.last_received_msg) and (msg_id == self.last_received_msg[origin]):
-            print(f"{input_message}")
             return
         self.last_received_msg[origin] = msg_id
 

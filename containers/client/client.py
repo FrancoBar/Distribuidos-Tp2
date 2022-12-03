@@ -40,9 +40,9 @@ def file_process(file_name, client_socket, lock):
                 lock.acquire()
                 transmition_tcp.send_str(client_socket, message)
                 lock.release()
-            except IncompleteReadError as e:
+            except socket.error as e:
                 lock.release()
-                print(e)
+                print('Server went down while sending processing data')
                 sys.exit(1)
             except Exception as e:
                 lock.release()
@@ -69,6 +69,8 @@ def recv_answer(client_socket):
                 with open(STORAGE + 'max_date.txt', 'a') as unique_pairs_file:
                     unique_pairs_file.write('"{}","{}"\n'.format(message['date'], message['view_count']))
 
+        except [socket.error, IncompleteReadError] as e:
+            print('Server went down while receiving answers')
         except Exception as e:
             print(e)
             sys.exit(1)
@@ -79,8 +81,8 @@ PORT = int(os.environ['SERVER_PORT'])
 def signal_handler(signum, frame):
     print('SIGTERM received')
     try:
-        sys.exit(0)
         client_socket.close()
+        sys.exit(0)
     except SystemExit as e:
         os._exit(0)
 
@@ -109,7 +111,10 @@ for p in process_list:
 
 print('Start receiving...')
 message = json.dumps({'type':'control', 'case':'eof'}, indent = 4)
-transmition_tcp.send_str(client_socket, message)
-recv_answer(client_socket)
-client_socket.close()
+try:
+    transmition_tcp.send_str(client_socket, message)
+    recv_answer(client_socket)
+    client_socket.close()
+except socket.error:
+    print('Server went down while sending eof')
 print('End')

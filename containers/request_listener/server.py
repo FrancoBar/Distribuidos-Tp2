@@ -49,7 +49,7 @@ class Server:
             child_processes.append(p)
 
         for hanging_query_id in self._hanging_queries:
-            connections_queue.put((None, hanging_query_id))
+            connections_queue.put((None, hanging_query_id.split('.')[0]))
 
         hanging_clients_ids = list(map(lambda file_name : int(file_name[len('client_'):-len(query_state.FILE_TYPE)]), self._hanging_queries))
         # Set next_client_number so as to avoid collisions between disconnect and business processes

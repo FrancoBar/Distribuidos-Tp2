@@ -36,17 +36,16 @@ def monitor(service_list, max_retries):
 						while True:
 							n, address = recv_uint32(health_socket)
 							if i == n:
-								logging.info('{}, {}, {}'.format(n, service, address))
+								logging.debug('{}, {}, {}'.format(n, service, address))
 								break
 							else:
-								logging.info('{} != {}'.format(i, n))
+								logging.debug('{} != {}'.format(i, n))
 						break
 					except (socket.gaierror, socket.timeout):
-						logging.info(f'retries: {retries}')
-						logging.info(f'max_retries: {max_retries}')
 						if retries >= max_retries - 1:
 							result = subprocess.run(['docker', 'restart', service], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-							logging.info('Command executed. Result={}. Output={}. Error={}'.format(result.returncode, result.stdout, result.stderr))
+							logging.debug('Command executed. Result={}. Output={}. Error={}'.format(result.returncode, result.stdout, result.stderr))
+							logging.info('Restarting ' + service)
 						else:
 							logging.info('Retry sending to ' + service)
 			time.sleep(SLEEP_SECONDS)

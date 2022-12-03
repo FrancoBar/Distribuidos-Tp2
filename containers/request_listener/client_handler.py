@@ -56,14 +56,12 @@ class ClientHandler:
                 self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             else:
                 self.entry_input = poisoned_middleware.PoisonedTCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
-            file_name = STORAGE + client_id
+            file_name = STORAGE + client_id + query_state.FILE_TYPE
+            self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             if accept_socket != None:
                 # Creates a file that represents the client session and allows to
                 # erase temporary states on a failure.
-                file_name += query_state.FILE_TYPE
                 open(file_name, 'x')
-
-                self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
                 
                 logging.info('Receiving entries')
                 self.entry_input.run()
@@ -71,18 +69,21 @@ class ClientHandler:
                 logging.info('Answering entries')
                 self.entry_ouput.run()
                 
-            else:
-                self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-        except [IncompleteReadError, socket.error] as e:
-            logging.error('Client abruptly disconnected')
+        # From now on we use both print and logging since sometimes one works and the other one does not
+        except (IncompleteReadError, socket.error, OSError) as e:
+            logging.error('LOGGING: Client abruptly disconnected')
+            print('PRINT: Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-            logging.exception(e)
         except Exception as e:
-            raise e
+            logging.exception(f'LOGGING: {str(e)}')
+            print(f'LOGGING: {str(e)}')
         finally:
             try:
-                self.entry_input.delete_input_queue()
+                self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
+                self.entry_ouput.delete_input_queue()
                 os.remove(file_name)
+                logging.info('LOGGING: Finished processing query')
+                print('PRINT: Finished processing query')
             except FileNotFoundError:
                 pass
 

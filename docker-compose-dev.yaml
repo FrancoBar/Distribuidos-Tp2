@@ -29,7 +29,9 @@ services:
       - PYTHONUNBUFFERED=1
       - SERVICES=health_checker_0,health_checker_1,health_checker_2,request_listener,all_countries_agg_0,all_countries_agg_1,all_countries_agg_2,thumbnail_downloader_0,thumbnail_downloader_1,thumbnail_downloader_2,max_day_filter_0,max_day_filter_1,max_day_filter_2,max_day_agg_0,max_day_agg_1,max_day_agg_2,tag_filter_0,tag_filter_1,tag_filter_2,likes_filter_0,likes_filter_1,likes_filter_2,duplicates_filter_0,duplicates_filter_1,duplicates_filter_2
       - RETRIES=3
-
+    depends_on:
+      - request_listener
+      
   health_checker_1:
     container_name: health_checker_1
     build:
@@ -44,6 +46,8 @@ services:
       - PYTHONUNBUFFERED=1
       - SERVICES=health_checker_0,health_checker_1,health_checker_2,request_listener,all_countries_agg_0,all_countries_agg_1,all_countries_agg_2,thumbnail_downloader_0,thumbnail_downloader_1,thumbnail_downloader_2,max_day_filter_0,max_day_filter_1,max_day_filter_2,max_day_agg_0,max_day_agg_1,max_day_agg_2,tag_filter_0,tag_filter_1,tag_filter_2,likes_filter_0,likes_filter_1,likes_filter_2,duplicates_filter_0,duplicates_filter_1,duplicates_filter_2
       - RETRIES=3
+    depends_on:
+      - request_listener
 
   health_checker_2:
     container_name: health_checker_2
@@ -59,6 +63,8 @@ services:
       - PYTHONUNBUFFERED=1
       - SERVICES=health_checker_0,health_checker_1,health_checker_2,request_listener,all_countries_agg_0,all_countries_agg_1,all_countries_agg_2,thumbnail_downloader_0,thumbnail_downloader_1,thumbnail_downloader_2,max_day_filter_0,max_day_filter_1,max_day_filter_2,max_day_agg_0,max_day_agg_1,max_day_agg_2,tag_filter_0,tag_filter_1,tag_filter_2,likes_filter_0,likes_filter_1,likes_filter_2,duplicates_filter_0,duplicates_filter_1,duplicates_filter_2
       - RETRIES=3
+    depends_on:
+      - request_listener
 
   client_0:
     container_name: client_0
@@ -80,188 +86,188 @@ services:
     links:
       - request_listener
 
-  client_1:
-    container_name: client_1
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=1
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=0
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_1:
+  #   container_name: client_1
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=1
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=0
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
 
-  client_2:
-    container_name: client_2
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=2
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=0
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_2:
+  #   container_name: client_2
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=2
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=0
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
-  client_3:
-    container_name: client_3
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=3
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=0
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_3:
+  #   container_name: client_3
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=3
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=0
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
-  client_4:
-    container_name: client_4
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=4
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=0
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_4:
+  #   container_name: client_4
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=4
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=0
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
-  client_5:
-    container_name: client_5
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=5
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=0
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_5:
+  #   container_name: client_5
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=5
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=0
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
-  client_6:
-    container_name: client_6
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=6
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=60
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-
-
-  client_7:
-    container_name: client_7
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=7
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=60
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
-
-  client_8:
-    container_name: client_8
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=8
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=60
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_6:
+  #   container_name: client_6
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=6
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=60
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
 
-  client_9:
-    container_name: client_9
-    build:
-      context: ./containers/
-      dockerfile: client/Dockerfile
-    environment:
-      - NODE_ID=9
-      - SERVER_PORT=25555
-      - SERVER_HOST=request_listener
-      - PYTHONUNBUFFERED=1
-      - SLEEP_TIME=60
-    volumes:
-      - .data/output:/output
-      - .data/datasets:/datasets
-      - .data/config.ini:/root/config.ini
-    depends_on:
-      - request_listener
-    links:
-      - request_listener
+  # client_7:
+  #   container_name: client_7
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=7
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=60
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+
+  # client_8:
+  #   container_name: client_8
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=8
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=60
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
+
+
+  # client_9:
+  #   container_name: client_9
+  #   build:
+  #     context: ./containers/
+  #     dockerfile: client/Dockerfile
+  #   environment:
+  #     - NODE_ID=9
+  #     - SERVER_PORT=25555
+  #     - SERVER_HOST=request_listener
+  #     - PYTHONUNBUFFERED=1
+  #     - SLEEP_TIME=60
+  #   volumes:
+  #     - .data/output:/output
+  #     - .data/datasets:/datasets
+  #     - .data/config.ini:/root/config.ini
+  #   depends_on:
+  #     - request_listener
+  #   links:
+  #     - request_listener
 
   request_listener:
     container_name: request_listener
@@ -271,7 +277,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
     expose:
       - "25555"
     depends_on:
@@ -300,7 +306,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   all_countries_agg_1:
     container_name: all_countries_agg_1
@@ -317,7 +323,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   all_countries_agg_2:
     container_name: all_countries_agg_2
@@ -334,7 +340,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
 
   thumbnail_downloader_0:
@@ -351,7 +357,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   thumbnail_downloader_1:
     container_name: thumbnail_downloader_1
@@ -367,7 +373,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   thumbnail_downloader_2:
     container_name: thumbnail_downloader_2
@@ -383,7 +389,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   max_day_filter_0:
     container_name: max_day_filter_0
@@ -400,7 +406,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   max_day_filter_1:
     container_name: max_day_filter_1
@@ -417,7 +423,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   max_day_filter_2:
     container_name: max_day_filter_2
@@ -434,7 +440,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
 
   max_day_agg_0:
@@ -451,7 +457,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   max_day_agg_1:
     container_name: max_day_agg_1
@@ -467,7 +473,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   max_day_agg_2:
     container_name: max_day_agg_2
@@ -483,7 +489,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   tag_filter_0:
     container_name: tag_filter_0
@@ -500,7 +506,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   tag_filter_1:
     container_name: tag_filter_1
@@ -517,7 +523,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   tag_filter_2:
     container_name: tag_filter_2
@@ -534,7 +540,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   likes_filter_0:
     container_name: likes_filter_0
@@ -554,7 +560,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   likes_filter_1:
     container_name: likes_filter_1
@@ -574,7 +580,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   likes_filter_2:
     container_name: likes_filter_2
@@ -594,7 +600,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
 
   duplicates_filter_0:
@@ -611,7 +617,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   duplicates_filter_1:
     container_name: duplicates_filter_1
@@ -627,7 +633,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false
 
   duplicates_filter_2:
     container_name: duplicates_filter_2
@@ -643,4 +649,4 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=true
+      - IS_POISONED=false

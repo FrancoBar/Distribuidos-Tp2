@@ -7,7 +7,29 @@
 
 [TOC]
 
-## Alcance
+## Problema a solucionar
+
+### Objetivos
+
+**Descripción breve de objetivos  similar a la diapositiva**
+
+
+
+### Escenarios
+
+![](./imgs/casos_de_uso.png)
+
+*Diagrama de casos de uso*
+
+
+
+**Poner items en casos de uso C-(...), tablita describiendo nro, titulo, actor, flujo principal**
+
+La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
+
+
+
+### Alcance
 
 El sistema deberá responder a los escenarios planteados en la sección correspondiente, presentando alta disponibilidad y  tolerancia a fallos.
 
@@ -27,7 +49,9 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 ## Arquitectura de Software
 
-*Agregar descripción a grandes rasgos (inspirarse en robustez)*
+**Agregar descripción a grandes rasgos (inspirarse en robustez)**
+
+
 
 Para la ejecución de las tareas con alto throughput se consideró adecuado el planteo de una arquitectura del tipo pipeline, cuyas colas intermedias son gestionadas por un middleware de mensajes externo.
 
@@ -36,12 +60,6 @@ Bastó con acompañar los mensajes con un id de query para separar el estado loc
 Los clientes se comunican por un socket TCP a un único punto de entrada y salida del sistema (y un único punto de falla). En una primer fase ingestan al sistema entrada por entrada los datos a procesar y  luego quedan a la espera de mensajes de respuesta.
 
 Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-monitors" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída. En cada nodo existe un proceso de prueba de vida ajeno al proceso principal, que consulta periódicamente su estado y responde a las consultas del health monitor apropiadamente. Dada su simpleza y tamaño, estos mensajes se intercambian por sockets UDP.
-
-
-
-## Objetivos y Restricciones
-
-*Hablar de hash*
 
 
 
@@ -55,7 +73,11 @@ El DAG previo muestra una división lógica de tareas, sus dependencias y el flu
 
 
 
-*Incluir diag. estados de health-monitor*
+**Hablar de hash**
+
+
+
+**Incluir diag. estados de health-monitor y explicar**
 
 
 
@@ -63,7 +85,7 @@ El DAG previo muestra una división lógica de tareas, sus dependencias y el flu
 
 ![](./imgs/clases.png)
 
-*Diagrama de clases del middleware*
+*Diagrama de clases del middleware* **Actualizar y hablar algo más del middleware**
 
 Se encapsuló la lógica de recepción y envío de mensajes entre canales y sockets en una capa de middleware que cada etapa del pipeline consumía. El diagrama presenta la jerarquía de clases interna de los filtros del middleware. _ChannelQueue y _TCPQueue ocultan los detalles del modo en que se serializan y transmiten los mensajes, mientras que _BaseFilter reúne el compartamiento común a todo filtro, como ser la administración de las colas y el procesamiento de señales. Finalmente ChannelChannelFilter, TCPChannelFilter y ChannelTCPFilter abstráen los detalles más delicados de la inicialización de las colas, ej: manejo de la conexión con RabbitMQ.
 
@@ -71,11 +93,9 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 ## Vista de Procesos
 
-*Monigote/actor de sistema*
+****
 
-*Ajustar activación y media flecha (asincrónica)*
-
-*Mejorar mismo caso*
+**Mejorar mismo caso, monigote/actor de sistema, Ajustar activación y media flecha (asincrónica)**
 
 ![](./imgs/secuencia_max_day.png)
 
@@ -87,17 +107,17 @@ El flujo del cálculo del día máximo permite destacar aspectos relevantes del 
 
 
 
-*Actividades mostrando funcionamiento mini de sistema*
+**Actividades mostrando funcionamiento mini de sistema**
 
 
-
-*Levantamiento de estado de archivo*
 
 
 
 ![](./imgs/actividades_recu.png)
 
-*Diagrama de actividades para broadcast entre copias*
+*Levantamiento de estado de archivo*
+
+**Desarrollar**
 
 
 
@@ -108,6 +128,8 @@ El diagrama explica claramente el protocolo, pero no da cuenta de porqué está 
 
 
 ## Vista de Desarrollo
+
+**Actualizar**
 
 ![](./imgs/paquetes.png)
 
@@ -133,7 +155,7 @@ Actualmente, request_listener es el único que emplea colas TCP. En tal caso el 
 
 *Diagrama de robustez*
 
-
+**Pensar si agregar health checkers y agregar archivitos (query state), tambien hablar del query state**
 
 *Pensar si sumar diagrama de recuperación o de persistencia*
 
@@ -155,23 +177,9 @@ Claramente existe gran dependencia del middleware de colas, que en este caso es 
 
 
 
-## Escenarios
-
-![](./imgs/casos_de_uso.png)
-
-*Diagrama de casos de uso*
-
-
-
-*Poner items en casos de uso C-(...), tablita describiendo nro, titulo, actor, flujo principal*
-
-La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
-
-
-
 ## Tamaño y Rendimiento
 
-
+**Considerar si es valiosa**
 
 
 

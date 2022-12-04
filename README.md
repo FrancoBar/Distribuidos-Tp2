@@ -74,8 +74,12 @@ El DAG previo muestra una división lógica de tareas, sus dependencias y el flu
 
 
 
-**Hablar de hash**
+COMPLETAR?????????? **Hablar de hash**
+Como se indicó previamente, uno de los objetivos de este sistema distribuido es tener un poder de escalamiento extremadamente grande. Debido a esto, se quiere poder dividir la carga del procesamiento de datos en varias unidades de cómputo distintas, de forma tal que se reduzca el tiempo de espera de un cliente. En este proyecto, para poder cumplir con lo recientemente establecido, se decidió realizar un balance de carga utilizando una función de hashing, que genera resultados uniformemente distribuidos.  
 
+Para aprovechar estas funcionalidades correctamente, se asignó a cada nodo de cada etapa del pipeline un número de id, el cual se utilizaría para determinar junto con el valor del hash del dato a qué nodo se redirigiría este para ser procesado. Esto se hizo no solo con funcionalidades de balance de carga, sino que también con el objetivo de facilitar la implementación de la tolerancia a fallas, ya que el determinismo de la función de hashing sobre un dato permite asegurar que este siempre será enviado al nodo que tenga el id que resuelte de aplicarle la función de hashing.
+
+Al poder en cualquier momento producirse una caída de un servicio, cancelando así el procesamiento obligatorio de un dato, se genera la necesidad de recalcular este procesamiento para poder continuar con la normal ejecución de tareas del pedido del cliente. Si se utilizara un balanceo de cargas del tipo round robin o similar, de forma tal que un mismo dato pueda terminar en distintos nodos para ser procesado en distintas ocasiones, entonces se debería tener un método de persistencia de logs centralizado al cual deben acceder todos los nodos que procesan los datos, ya que todo mensaje recibido podría ser uno que logró procesar otro nodo, además de producir otros problemas de coordinación y de eficiencia por acceso a un recurso único. Al utilizar el sistema de hashing, se garantiza que cada dato irá siempre al mismo nodo, por lo que cada uno puede tener su propio sistema de persistencia de logs, sin tener que tener acceso a los resultados de procesamiento de los otros nodos, ignorando así la limitación de tener que acceder a un recurso único compartido por varios consumidores.
 
 
 **F - Incluir diag. estados de health-monitor y explicar**

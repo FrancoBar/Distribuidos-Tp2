@@ -23,7 +23,7 @@
 
 
 
-**Poner items en casos de uso C-(...), tablita describiendo nro, titulo, actor, flujo principal**
+**F - Poner items en casos de uso C-(...), tablita describiendo nro, titulo, actor, flujo principal**
 
 La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
 
@@ -77,7 +77,7 @@ El DAG previo muestra una división lógica de tareas, sus dependencias y el flu
 
 
 
-**Incluir diag. estados de health-monitor y explicar**
+**F - Incluir diag. estados de health-monitor y explicar**
 
 
 
@@ -85,7 +85,7 @@ El DAG previo muestra una división lógica de tareas, sus dependencias y el flu
 
 ![](./imgs/clases.png)
 
-*Diagrama de clases del middleware* **Actualizar y hablar algo más del middleware**
+*Diagrama de clases del middleware* **F - Actualizar y hablar algo más del middleware**
 
 Se encapsuló la lógica de recepción y envío de mensajes entre canales y sockets en una capa de middleware que cada etapa del pipeline consumía. El diagrama presenta la jerarquía de clases interna de los filtros del middleware. _ChannelQueue y _TCPQueue ocultan los detalles del modo en que se serializan y transmiten los mensajes, mientras que _BaseFilter reúne el compartamiento común a todo filtro, como ser la administración de las colas y el procesamiento de señales. Finalmente ChannelChannelFilter, TCPChannelFilter y ChannelTCPFilter abstráen los detalles más delicados de la inicialización de las colas, ej: manejo de la conexión con RabbitMQ.
 
@@ -95,7 +95,7 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 ****
 
-**Mejorar mismo caso, monigote/actor de sistema, Ajustar activación y media flecha (asincrónica)**
+**F - Mejorar mismo caso, monigote/actor de sistema, Ajustar activación y media flecha (asincrónica)**
 
 ![](./imgs/secuencia_max_day.png)
 
@@ -117,7 +117,7 @@ El flujo del cálculo del día máximo permite destacar aspectos relevantes del 
 
 *Levantamiento de estado de archivo*
 
-**Desarrollar**
+**F - Desarrollar**
 
 
 

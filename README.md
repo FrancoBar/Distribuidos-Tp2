@@ -154,11 +154,11 @@ Al poder en cualquier momento producirse una caída de un servicio, cancelando a
 
 
 
-![](./imgs/clases.png)
+![](./imgs/clases_middleware.png)
 
-*Diagrama de clases del middleware* **F - Actualizar y hablar algo más del middleware**
+*Diagrama de clases del middleware*
 
-Se encapsuló la lógica de recepción y envío de mensajes entre canales y sockets en una capa de middleware que cada etapa del pipeline consumía. El diagrama presenta la jerarquía de clases interna de los filtros del middleware. _ChannelQueue y _TCPQueue ocultan los detalles del modo en que se serializan y transmiten los mensajes, mientras que _BaseFilter reúne el compartamiento común a todo filtro, como ser la administración de las colas y el procesamiento de señales. Finalmente ChannelChannelFilter, TCPChannelFilter y ChannelTCPFilter abstráen los detalles más delicados de la inicialización de las colas, ej: manejo de la conexión con RabbitMQ.
+Se encapsuló la lógica de recepción y envío de mensajes entre canales y sockets en una capa de middleware que cada etapa del pipeline consumía. El diagrama presenta la jerarquía de clases interna de los filtros del middleware. _ExchangeQueueIn, _ExchangeQueueOut y _TCPQueue ocultan los detalles del modo en que se serializan y transmiten los mensajes, mientras que _BaseFilter reúne el compartamiento común a todo filtro, como ser la administración de las colas y el procesamiento de señales. _ConnectionFilter especializa _BaseFilter para el manejo de conexiones con RabbitMQ y finalmente ExchangeExchangeFilter, TCPExchangeFilter y ExchangeTCPFilter abstráen los detalles más delicados de la inicialización de las colas y presentan al usuario una interfaz uniforme y sencilla.
 
 
 

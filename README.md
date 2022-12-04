@@ -103,7 +103,13 @@ Se encapsuló la lógica de recepción y envío de mensajes entre canales y sock
 
 
 
-El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio, mientras que los segundos pueden ser del tipo config o eof. La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido. A continuación se ahondará en el automensaje de Max Day Filter. 
+El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio, mientras que los segundos pueden ser del tipo config o eof.
+
+La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido.
+
+El nodo destino de los mensajes de data se desprende de su contenido... **A - Hablar de hash?**
+
+Los mensajes de control siempre se transmiten por multicast a todas las réplicas del siguiente nodo del pipeline. En el caso de los eof es necesario que todas las replicas anteriores lo hayan emitido para propagarlo. Para el config es suficiente que se reciba y propague una sola vez, si se recibe nuevamente sencillamente se descarta. Esta metodología no solo evita mensajes innecesarios, sino que además garantiza que antes de recibir cualquier dato de la solicitud del cliente se recibirá un config, si al recuperarse de una caída un nodo recibe eof de una consulta sin config o datos puede ignorarlo, pues el único caso en el que eso pasaría es cuando al recibir el último eof se borra el archivo de log de una consulta y el container se reinicia antes de emitir el ack hacia atrás.
 
 
 
@@ -115,15 +121,34 @@ El flujo del cálculo del día máximo permite destacar aspectos relevantes del 
 
 ![](./imgs/actividades_recu.png)
 
-*Levantamiento de estado de archivo*
+*Flujo de recuperación de estado de archivo de log*
 
-**F - Desarrollar**
+Todo nodo debe ser capaz de recuperar su estado ante una falla y posterior reinicio. El estado incluye la reconstrucción de estructuras de dato pertinentes a la consulta, los últimos mensajes recibidos y procesados (para garantizar idempotencia de mensajes) y el último id utilizado para emitir un mensaje, de modo tal que el siguiente nodo pueda diferenciar los mensajes que ya proceso solo inspeccionando este id.
 
+Se debió brindar tolerancia ante cortes de luz y otras situaciones en donde ni siquiera puede confiarse en la correcta escritura de información en disco, por lo que dentro de un solo nodo debió diseñarse un protocolo de escritura como los que se estudia para bases de datos, aunque notablemente más sencillo.
 
+Se crea un archivo csv por consulta, cuya estructura típica se enseña a continuación:
 
-La comunicación de información de control resultó ser un gran desafío de diseño, pues no solo debía llegar a todas las copias de un componente, sino que también debía respetar el órden de mensajes junto con los mensajes de datos. Aunque se evaluó utilizar canales separados de broadcast internos, finalmente se optó por un protocolo que trabaja solo con la cola de entrada ,que es compartida entre control y datos.
+```
+w,3,1,0,4/10/1997,BR
+c,
+w,2,0,1,4/10/1997,BR
+c,
+w,1,3,2,8/12/1998,KR
+c,
+```
 
-El diagrama explica claramente el protocolo, pero no da cuenta de porqué está garantizada su terminación y su buen desempeño. Todo lo anterior esta dado por el fairness que provee RabbitMQ y el tipo de operaciones del negocio, cuyo tiempo de ejecución es casi independiente de los datos de entrada y por ende parejo entre las copias. Por ejemplo, cuando se recibe la señal de eof, todo el resto de las copias podrían tener algunos mensajes pendientes por procesar y entonces la misma copia desencolará y encolará el mensaje de eof una y otra vez, pero tras este corto tiempo se liberarán progresivamente el resto de los nodos y gracias al fairness el mensaje de control tenderá a transmitirse en roundrobin, llegando solo a las copias necesarias, hasta que todos hayan recibido el mensaje. 
+Las entradas precedidas por *w* (write) almacenan la información útil, los campos son: el id del nodo de donde provino el mensaje, id del mensaje que ingresó, id de mensaje propio y campos opcionales de clave y valor, cuyo parseo puede complejizarse de ser necesario.  Múltiples entradas w pueden encontrarse antes de un commit .
+
+Para las entradas precedidas por *c* (commits) dan por sentado el correcto procesamiento y envío de toda la información relevante  a ese mensaje.
+
+Si ocurre una falla pueden ocurrir múltiples situaciones. En general, todo conjunto de writes que no han sido confirmados por un commit se descartan y el archivo se trunca. Entonces el id del mensaje no se preserva en la tabla de últimos mensajes recibidos y el mensaje se procesa nuevamente.
+
+Cuando una transacción finaliza, correctamente o por desconexión,  su archivo de log asociado puede borrarse.
+
+El log evita cualquier corrupción del estado propio y la tabla de últimos mensajes recibidos evita la propagación de errores filtrando mensajes duplicados entre más de dos nodos.
+
+Request listener no está sujeto en rigor a  los comportamientos aquí descritos. Debe tratarse especialmente para evitar que una cadena de mensajes duplicados (suceso extremadamente improbable, pero aún posible) se propague al cliente. Ante la falla de request listener se produce un flujo de desconexión que se explicará más adelante.
 
 
 

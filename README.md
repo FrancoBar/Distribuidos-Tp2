@@ -13,6 +13,7 @@
 
 **Descripción breve de objetivos  similar a la diapositiva**
 
+El objetivo del presente trabajo consiste en implementar un sistema distribuido con alto potencial de escalabilidad que permita un procesamiento paralelo de datos. Se hace énfasis especialmente en la tolerancia a fallos. Esto se debe a que al realizarse los cálculos en una red compuesta por varias computadoras se presenta un ambiente impredecible de ejecución, podría en cualquier momento desconectarse alguno de los centros de procesamientos de datos. A pesar de esto, nuestro programa debería evitar un fallo catastrófico, entrando en un estado de recuperación, de forma tal que eventualmente pueda volver a un estado normal de procesamiento, continuando todo trabajo que tuviera pendiente. 
 
 
 ### Escenarios

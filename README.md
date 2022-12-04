@@ -24,9 +24,75 @@ El objetivo del presente trabajo consiste en implementar un sistema distribuido 
 
 
 
-**F - Poner items en casos de uso C-(...), tablita describiendo nro, titulo, actor, flujo principal**
+**C1: Obtener día con mayor cantidad de vistas totales** 
 
-La interacción con el sistema es más bien simple, los clientes se conectan secuencialmente con el servidor e ingresan los datos a procesar con el fin de obtener el día con mayor cantidad de vistas, videos con tag "funny" populares y los thumbnails de videos trending. Luego esperan su resultado. El sistema no se detiene por si mismo, pero un administrador puede interrumpirlo en cualquier momento a través de señales.
+*Actores: Cliente*
+
+*Flujo principal:*
+
+1 - Cliente ingresa configuración de consulta
+
+2 - Sistema responde ack
+
+3 - Cliente ingesta entrada por entrada datos al sistema
+
+4 - Sistema responde ack a cada dato.
+
+5 - Cliente indica fin de datos.
+
+6 - Sistema responde día con mayor cantidad de vistas totales y fin de datos.
+
+
+
+**C2: Obtener videos funny populares**
+
+Actores: Cliente.
+
+Flujo principal:
+
+1 - Cliente ingresa configuración de consulta
+
+2 - Sistema responde ack
+
+3 - Cliente ingesta entrada por entrada datos al sistema.
+
+4 - Sistema responde con los videos funny populares.
+
+5 - Cliente indica fin de datos.
+
+6 - Sistema responde día con fin de datos.
+
+
+
+**C3: Obtener thumbnail de videos trending**
+
+Actores: Cliente.
+
+Flujo principal:
+
+1 - Cliente ingresa configuración de consulta
+
+2 - Sistema responde ack
+
+3 - Cliente ingesta entrada por entrada datos al sistema.
+
+4 - Sistema responde con thumbnail de videos trending.
+
+5 - Cliente indica fin de datos.
+
+6 - Sistema responde día con fin de datos.
+
+
+
+**C4: Interrumpir servicio**
+
+Actores: Administrador, Cliente.
+
+Flujo principal:
+
+1 - Administrador envía señal de interrupción.
+
+2 - Sistema interrumpe consultas de Cliente y se detiene.
 
 
 

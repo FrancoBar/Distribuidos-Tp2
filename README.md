@@ -52,7 +52,7 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 **Agregar descripción a grandes rasgos (inspirarse en robustez)**
 
-
+![](./imgs/robustez_simple.drawio.png)
 
 Para la ejecución de las tareas con alto throughput se consideró adecuado el planteo de una arquitectura del tipo pipeline, cuyas colas intermedias son gestionadas por un middleware de mensajes externo.
 

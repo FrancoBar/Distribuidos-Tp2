@@ -1,8 +1,5 @@
 import pika
 import json
-import sys
-import os
-import socket
 import logging
 import signal
 from asyncio import IncompleteReadError
@@ -133,7 +130,8 @@ class _TCPQueue:
 
     def close(self):
         self._open = False
-        self._socket.close()
+        if self._socket:
+            self._socket.close()
 
 class _BaseFilter:
     def __init__(self, input_queue, output_queue, filter_func):

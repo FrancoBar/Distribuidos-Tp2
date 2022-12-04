@@ -1,5 +1,6 @@
 import os
 import logging
+import shutil
 from configparser import ConfigParser
 
 def initialize_config():

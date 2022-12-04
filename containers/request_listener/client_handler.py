@@ -7,7 +7,6 @@ from common import routing
 from common import query_state
 import os
 import socket
-import time
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
@@ -39,7 +38,7 @@ routing_function = routing.generate_routing_function(CONTROL_ROUTE_KEY, NEXT_STA
 
 class ClientHandler:
     def __init__(self):
-        self.received_eofs = 0 # key: client_id, value: number of eofs received
+        self.received_eofs = 0
         self.entry_input = None
         self.entry_ouput = None
         self.client_id = None
@@ -71,19 +70,16 @@ class ClientHandler:
                 
         # From now on we use both print and logging since sometimes one works and the other one does not
         except (IncompleteReadError, socket.error, OSError) as e:
-            logging.error('LOGGING: Client abruptly disconnected')
-            print('PRINT: Client abruptly disconnected')
+            logging.error('Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
         except Exception as e:
-            logging.exception(f'LOGGING: {str(e)}')
-            print(f'LOGGING: {str(e)}')
+            logging.exception(e)
         finally:
             try:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
                 self.entry_ouput.delete_input_queue()
                 os.remove(file_name)
-                logging.info('LOGGING: Finished processing query')
-                print('PRINT: Finished processing query')
+                logging.info('Finished processing query')
             except FileNotFoundError:
                 pass
 

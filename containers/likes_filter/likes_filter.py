@@ -1,4 +1,3 @@
-import time
 from common import middleware
 from common import poisoned_middleware
 from common import utils
@@ -7,7 +6,6 @@ from common import query_state
 from common import general_filter
 import logging
 import os
-import sys
 
 config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']

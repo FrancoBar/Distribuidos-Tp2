@@ -1,15 +1,11 @@
 import time
 import os
-import csv
-import fcntl
 from common import middleware
 from common import poisoned_middleware
 from common import utils
 from common import routing
 from common import query_state
 from common import general_filter
-
-INVALID_AMOUNT = -1
 
 ID=os.environ['HOSTNAME']
 

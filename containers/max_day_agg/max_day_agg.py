@@ -1,5 +1,3 @@
-import json
-import time
 from common import middleware
 from common import poisoned_middleware
 from common import utils

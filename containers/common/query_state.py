@@ -123,9 +123,3 @@ class QueryState:
 
     def __str__(self):
             return str(self._queries)
-
-def _default_read_value(query, key, value):
-    query[key] = value
-
-def _default_write_value(query, key, value):
-    return str(value)

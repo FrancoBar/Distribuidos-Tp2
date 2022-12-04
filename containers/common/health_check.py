@@ -1,10 +1,7 @@
 import logging
 import subprocess
-import os
-import sys
 import time
 import logging
-import os
 from .utils import initialize_config, initialize_log
 import socket
 from .transmition_udp import send_uint32, recv_uint32

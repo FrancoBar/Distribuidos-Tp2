@@ -1,6 +1,5 @@
 import sys
 import socket
-import errno
 import time
 import logging
 import multiprocessing

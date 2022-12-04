@@ -1,5 +1,4 @@
 import os
-import time
 import logging
 import multiprocessing as mp
 from common import utils

@@ -1,6 +1,5 @@
 from .health_check import echo_server
 import multiprocessing as mp
-import logging
 import pika
 
 class GeneralFilter:
@@ -37,9 +36,8 @@ class GeneralFilter:
         client_id = input_message['client_id']
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'config', 'config')
         client_values = self.query_state.get_values(client_id)
-        if not ('config' in client_values):
-            client_values['config'] = 'config'
-            self.middleware.send(input_message)
+        client_values['config'] = 'config'
+        self.middleware.send(input_message)
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def _on_eof(self, input_message):

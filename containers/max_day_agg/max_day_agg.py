@@ -92,9 +92,6 @@ class MaxDayAggregator(general_filter.GeneralFilter):
         if input_message['case'] == 'disconnect':
             self.query_state.delete_query(client_id)
             
-    def start_received_messages_processing(self):
-        self.middleware.run()
-
 def main():
     wrapper = MaxDayAggregator()
     wrapper.start_received_messages_processing()

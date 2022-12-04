@@ -123,9 +123,6 @@ class CountriesAmountFilter(general_filter.GeneralFilter):
 
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def start_received_messages_processing(self):
-        self.middleware.run()
-
 def main():
     wrapper = CountriesAmountFilter()
     wrapper.start_received_messages_processing()

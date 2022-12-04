@@ -70,9 +70,6 @@ class LikesFilter(general_filter.GeneralFilter):
         finally:
             self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def start_received_messages_processing(self):
-        self.middleware.run()
-
 def main():
     wrapper = LikesFilter()
     wrapper.start_received_messages_processing()

@@ -91,10 +91,6 @@ class ThumbnailsDownloader(general_filter.GeneralFilter):
         if input_message['case'] == 'disconnect':
             self.query_state.delete_query(client_id)
 
-    def start_received_messages_processing(self):
-        self.middleware.run()
-
-
 def main():
     wrapper = ThumbnailsDownloader()
     wrapper.start_received_messages_processing()

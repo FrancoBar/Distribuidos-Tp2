@@ -103,15 +103,7 @@ class MaxDayFilter(general_filter.GeneralFilter):
         self.query_state.write(client_id, input_message['origin'], input_message['msg_id'], 'data', f'{trending_date},{amount_delta}')
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def start_received_messages_processing(self):
-        self.middleware.run()
-
 def main():
-    # logging.basicConfig(
-    #     format='%(asctime)s %(levelname)-8s %(message)s',
-    #     level="DEBUG",
-    #     datefmt='%Y-%m-%d %H:%M:%S',
-    # )
     wrapper = MaxDayFilter()
     wrapper.start_received_messages_processing()
     wrapper.stop_health_process()

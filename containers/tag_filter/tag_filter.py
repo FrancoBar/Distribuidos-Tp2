@@ -62,9 +62,6 @@ class TagFilter(general_filter.GeneralFilter):
             self.middleware.send(message_to_send)
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
-    def start_received_messages_processing(self):
-        self.middleware.run()
-
 def main():
     wrapper = TagFilter()
     wrapper.start_received_messages_processing()

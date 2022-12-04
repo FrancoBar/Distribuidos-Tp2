@@ -10,7 +10,7 @@ config = utils.initialize_config()
 LOGGING_LEVEL = config['GENERAL']['logging_level']
 utils.initialize_log(LOGGING_LEVEL)
 
-health_check_process = mp.Process(target=health_check.echo_server, daemon=True)
+health_check_process = mp.Process(target=health_check.echo_server, daemon=False)
 health_check_process.start()
 
 logging.basicConfig(level=logging.DEBUG)

@@ -24,7 +24,7 @@ def process_connection(process_id, accepted_socket, client_id):
 
 class RequestListener:
     def __init__(self):
-        self.health_check_process = mp.Process(target=health_check.echo_server, daemon=True)
+        self.health_check_process = mp.Process(target=health_check.echo_server, daemon=False)
         self.health_check_process.start()
         self.server = Server(PORT, 1, process_connection)
 

@@ -103,7 +103,7 @@ class LeaderElection:
 	def _state_leader(self):
 		logging.debug("Leader")
 		self.broadcast(MSG_LEADER)
-		working_process = multiprocessing.Process(target=self._working_process, daemon=True)
+		working_process = multiprocessing.Process(target=self._working_process, daemon=False)
 		working_process.start()
 		try:
 			other_id, msg = self.recv(None)
@@ -127,7 +127,7 @@ class LeaderElection:
 
 	def _working_process(self):
 		signal.signal(signal.SIGTERM, self.sigterm_handler_child)
-		broadcast_process = multiprocessing.Process(target=self._broadcast_process, daemon=True)
+		broadcast_process = multiprocessing.Process(target=self._broadcast_process, daemon=False)
 		broadcast_process.start()
 		self.work_callback()
 

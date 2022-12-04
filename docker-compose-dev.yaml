@@ -86,188 +86,188 @@ services:
     links:
       - request_listener
 
-  # client_1:
-  #   container_name: client_1
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=1
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=0
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_1:
+    container_name: client_1
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=1
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
 
-  # client_2:
-  #   container_name: client_2
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=2
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=0
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_2:
+    container_name: client_2
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=2
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
-  # client_3:
-  #   container_name: client_3
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=3
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=0
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_3:
+    container_name: client_3
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=3
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
-  # client_4:
-  #   container_name: client_4
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=4
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=0
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_4:
+    container_name: client_4
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=4
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
-  # client_5:
-  #   container_name: client_5
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=5
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=0
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_5:
+    container_name: client_5
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=5
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=0
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
-  # client_6:
-  #   container_name: client_6
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=6
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=60
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
-
-
-  # client_7:
-  #   container_name: client_7
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=7
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=60
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
-
-  # client_8:
-  #   container_name: client_8
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=8
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=60
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_6:
+    container_name: client_6
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=6
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
 
-  # client_9:
-  #   container_name: client_9
-  #   build:
-  #     context: ./containers/
-  #     dockerfile: client/Dockerfile
-  #   environment:
-  #     - NODE_ID=9
-  #     - SERVER_PORT=25555
-  #     - SERVER_HOST=request_listener
-  #     - PYTHONUNBUFFERED=1
-  #     - SLEEP_TIME=60
-  #   volumes:
-  #     - .data/output:/output
-  #     - .data/datasets:/datasets
-  #     - .data/config.ini:/root/config.ini
-  #   depends_on:
-  #     - request_listener
-  #   links:
-  #     - request_listener
+  client_7:
+    container_name: client_7
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=7
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+
+  client_8:
+    container_name: client_8
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=8
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
+
+
+  client_9:
+    container_name: client_9
+    build:
+      context: ./containers/
+      dockerfile: client/Dockerfile
+    environment:
+      - NODE_ID=9
+      - SERVER_PORT=25555
+      - SERVER_HOST=request_listener
+      - PYTHONUNBUFFERED=1
+      - SLEEP_TIME=60
+    volumes:
+      - .data/output:/output
+      - .data/datasets:/datasets
+      - .data/config.ini:/root/config.ini
+    depends_on:
+      - request_listener
+    links:
+      - request_listener
 
   request_listener:
     container_name: request_listener

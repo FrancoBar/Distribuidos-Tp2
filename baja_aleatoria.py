@@ -5,7 +5,7 @@ import time
 import json
 import re
 
-BLACKLIST = ['request_listener','client','health_checker']
+BLACKLIST = ['request_listener','client','health_checker_0', 'distribuidostp2_rabbitmq']
 METHODS = ['stop','kill']
 FRASES = ['no podía volar',
 		  'resbaló con una cáscara de banana',
@@ -41,7 +41,7 @@ while True:
 		continue
 
 	print(f'{chosen_container} {chosen_method} {chosen_container_name} {down_reason}')
-	#subprocess.run(['docker', chosen_method, chosen_container], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	subprocess.run(['docker', chosen_method, chosen_container], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	
 	i = (i + 1) % len(FRASES)
 	time.sleep(10)

@@ -9,7 +9,7 @@ class GeneralFilter:
         self.previous_stage_amount = previous_stage_amount
         self.middleware = middleware
         self.query_state = query_state
-        self.health_check_process = mp.Process(target=echo_server, daemon=True)
+        self.health_check_process = mp.Process(target=echo_server, daemon=False)
         self.health_check_process.start()
 
     def process_control_message(self, input_message):

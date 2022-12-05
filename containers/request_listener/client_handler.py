@@ -50,15 +50,13 @@ class ClientHandler:
     def handle_connection(self, process_id, accept_socket, client_id):
 
         try:
-            # raise pika.exceptions.StreamLostError()
             self.client_id = client_id
             self.process_id = process_id
             self.msg_counter = 0
-            self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
-            # if not IS_POISONED:
-            #     self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
-            # else:
-            #     self.entry_input = poisoned_middleware.PoisonedTCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
+            if not IS_POISONED:
+                self.entry_input = middleware.TCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
+            else:
+                self.entry_input = poisoned_middleware.PoisonedTCPExchangeFilter(RABBIT_HOST, accept_socket, OUTPUT_EXCHANGE, routing_function, self.entry_recv_callback)
             file_name = STORAGE + client_id + query_state.FILE_TYPE
             self.entry_ouput = middleware.ExchangeTCPFilter(RABBIT_HOST, INPUT_EXCHANGE, client_id, CONTROL_ROUTE_KEY, accept_socket, self.answers_callback)
             if accept_socket != None:
@@ -69,15 +67,11 @@ class ClientHandler:
                 logging.info('Receiving entries')
                 self.entry_input.run()
 
-                # self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-
                 logging.info('Answering entries')
                 self.entry_ouput.run()
             else:
                 self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
 
-            # self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-        # From now on we use both print and logging since sometimes one works and the other one does not
         except (IncompleteReadError, socket.error, OSError) as e:
             logging.error('Client abruptly disconnected')
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
@@ -85,15 +79,12 @@ class ClientHandler:
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
             print("PRINT BUENAS EXCEPTION DE PIKA")
             logging.error("LOGGING BUENAS EXCEPTION DE PIKA")
-        # except Exception as e:
-        #     logging.exception(e)
         except ConnectionResetError:
             self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
             print("PRINT BUENAS EXCEPTION DE ConnectionResetError")
             logging.error("LOGGING BUENAS EXCEPTION DE ConnectionResetError")
-        except (pika.exceptions.AMQPError , pika.exceptions.AMQPConnectionError) as e:
-            self.entry_input.send({'type':'priority', 'case':'disconnect', 'client_id':client_id})
-            pass
+        except Exception as e:
+            logging.exception(e)
         finally:
             try:
                 self.entry_ouput.delete_input_queue()
@@ -138,4 +129,3 @@ class ClientHandler:
                     self.entry_ouput.stop()
         else:
             self.entry_ouput.send(input_message)
-            # print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")

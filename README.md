@@ -126,7 +126,7 @@ Bastó con acompañar los mensajes con un id de query para separar el estado loc
 
 Los clientes se comunican por un socket TCP a un único punto de entrada y salida del sistema (y un único punto de falla). En una primer fase ingestan al sistema entrada por entrada los datos a procesar y  luego quedan a la espera de mensajes de respuesta.
 
-Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-monitors" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída. En cada nodo existe un proceso de prueba de vida ajeno al proceso principal, que consulta periódicamente su estado y responde a las consultas del health monitor apropiadamente. Dada su simpleza y tamaño, estos mensajes se intercambian por sockets UDP.
+Se cuenta con un cluster de health-monitors que se comunican con el resto del sistema para detectar nodos caídos y reiniciarlos. Dada su simpleza y tamaño, estos mensajes se intercambian por sockets UDP.
 
 
 
@@ -181,6 +181,18 @@ La señal de eof no es un capricho, se requiere su emisión tanto para resetear 
 El nodo destino de los mensajes de data se desprende de su contenido... **A - Hablar de hash?**
 
 Los mensajes de control siempre se transmiten por multicast a todas las réplicas del siguiente nodo del pipeline. En el caso de los eof es necesario que todas las replicas anteriores lo hayan emitido para propagarlo. Para el config es suficiente que se reciba y propague una sola vez, si se recibe nuevamente sencillamente se descarta. Esta metodología no solo evita mensajes innecesarios, sino que además garantiza que antes de recibir cualquier dato de la solicitud del cliente se recibirá un config, si al recuperarse de una caída un nodo recibe eof de una consulta sin config o datos puede ignorarlo, pues el único caso en el que eso pasaría es cuando al recibir el último eof se borra el archivo de log de una consulta y el container se reinicia antes de emitir el ack hacia atrás.
+
+
+
+**Health monitors (diagrama pendiente)**
+
+Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-monitors" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída.
+
+El consenso de para la elección de lider se alcanza mediante una ligera variante del algoritmo Bully donde el nodo con mayor id no se anuncia automáticamente como líder,sino que participa del proceso de elección, aunque evidentemente ganará.  Se decidió seguir este camino para que pueda apreciarse el intercambio de mensajes de elección, puesto que el nodo con mayor id no se encuentra inactivo por mucho tiempo.
+
+Los exchanges o colas  de rabbit permiten desentenderse de los detalles de comunicación pero para esta aplicación su overhead y durabilidad entorpecen un proceso que es en esencia muy simple. Un mesh TCP es apto para el intercambio de mensajes largos pero nuevamente se consideró demasiado para el problema a enfrentar. 
+
+ Se dispuso que el líder recorra en  roundrobin una lista de nombres (que el DNS de docker traduce a direcciones IP) y envíe un número incremental por sockets UDP. Cada container cuenta con un proceso escucha en la dirección y puerto apropiada y hace eco del mensaje recibido. Mientras el lider recibe el número como respuesta espera. Si se cumple un timeout se reenvía el mensaje y se repite la espera hasta 3 veces. Entonces se considera fallido el nodo consultado y se ordena por *docker in docker* que se reinicie.
 
 
 
@@ -251,17 +263,17 @@ Actualmente, request_listener es el único que emplea colas TCP. En tal caso el 
 
 *Diagrama de robustez*
 
-**Pensar si agregar health checkers y agregar archivitos (query state), tambien hablar del query state**
-
-*Pensar si sumar diagrama de recuperación o de persistencia*
 
 
+Como puede observarse, la mayoría de los filtros están pensados para permitir su escalamiento.
 
-*Evaluar tolerancia a fallos y procesamiento en toda sección*
+Request Listener es la excepción, ya que si se preserva la táctica de long polling no puede descomponerse la conexión TCP de los clientes con facilidad. Ante su eventual falla se interrumpen las conexiones y las transacciones deben comenzar desde el principio. Persistir un id incremental de consulta evitaría que los datos a medio procesar de transacciones pasadas se interpretasen como parte de nuevas consultas, pero en algún momento tal id haría overflow. Por ello se envía un mensaje especial de desconexión que jamás se descarta. La respuesta al mensaje de desconexión es eliminar el estado de la consulta y propagar el mensaje por el pipeline. No es necesario evitar mensajes duplicados, ya que la operación es idempotente por naturaleza. 
 
-Como puede observarse, la mayoría de los filtros están pensados para permitir su escalamiento. Max day agg y Request Listener son la excepción. Request Listener es un nodo crítico, no solo necesita ser único, sino que además su eventual falla puede dejar al resto de los componentes en un estado inválido. De modo que la caída de Request Listener conlleva el reinicio total del sistema. Por el contrario, Max day agg procesa un volumen de datos igual a la cantidad de copias de Max day filter y solo se activa intermitentemente. En el presente es también un punto de falla, pero podría solventarse fácilmente empleando una variable "máximo actual" en modo archivo. 
+Cuando se comienza a procesar una consulta, en request listener se crea un archivo vacío cuyo nombre es el id de la consulta. Si el cliente se desconecta (exitosa o excepcionalmente) se envía el mensaje de desconexión y se borra el archivo que representaba la consulta. Si request listener falla repentinamente, cuando se recupera toma del nombre de los archivos el id de las transacciones interrumpidas y envía mensajes de desconexión para cada una de ellas. Luego borra los archivos y usa como siguiente id de consulta uno más que el mayor id encontrado.
 
 
+
+**Hablar de request listener como punto único de falla y protocolo de desconexión**
 
 
 
@@ -269,13 +281,7 @@ Como puede observarse, la mayoría de los filtros están pensados para permitir 
 
 *Diagrama de despliegue*
 
-Claramente existe gran dependencia del middleware de colas, que en este caso es RabbitMQ. Por lo demás, cada nodo puede ser desplegado independientemente. Por la implementación, actualmente las copias de un mismo filtro deben estar en el mismo dispositivo (pues comparten archivos por volúmenes de docker), pero realmente ninguna de las tareas requiere acceso a la totalidad de los datos. Si se garantiza la afinidad de los datos, sea mediante un sistema de archivos distribuído o sencillamente con un routekey que dependa de un atributo de los datos (ej: video_id), entonces esta restricción sobre el escalamiento desaparecería.
-
-
-
-## Tamaño y Rendimiento
-
-**Considerar si es valiosa**
+Claramente existe gran dependencia del middleware de colas, que en este caso es RabbitMQ. Por lo demás, cada nodo puede ser desplegado independientemente.
 
 
 

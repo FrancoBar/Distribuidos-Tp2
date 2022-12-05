@@ -162,6 +162,10 @@ class _BaseFilter:
         if self._prev_handler:
             self._prev_handler(signum, frame)
 
+    def __del__(self):
+        self._input_queue.close()
+        self._output_queue.close()
+
 class _ConnectionFilter(_BaseFilter):
     def __init__(self, connection, input_queue, output_queue, filter_func):
         super().__init__(input_queue, output_queue,filter_func)

@@ -485,7 +485,7 @@ services:
          condition: service_healthy
     volumes:
       - .data/config.ini:/root/config.ini
-      - .data/volumes/max_day_agg/max_day_agg_1:/root/storage
+      - .data/volumes/max_day_agg/max_day_agg_2:/root/storage
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1

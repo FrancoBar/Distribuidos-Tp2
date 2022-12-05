@@ -277,7 +277,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
     expose:
       - "25555"
     depends_on:
@@ -306,7 +306,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   all_countries_agg_1:
     container_name: all_countries_agg_1
@@ -323,7 +323,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   all_countries_agg_2:
     container_name: all_countries_agg_2
@@ -340,7 +340,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
 
   thumbnail_downloader_0:
@@ -357,7 +357,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   thumbnail_downloader_1:
     container_name: thumbnail_downloader_1
@@ -373,7 +373,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   thumbnail_downloader_2:
     container_name: thumbnail_downloader_2
@@ -389,7 +389,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   max_day_filter_0:
     container_name: max_day_filter_0
@@ -406,7 +406,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   max_day_filter_1:
     container_name: max_day_filter_1
@@ -423,7 +423,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   max_day_filter_2:
     container_name: max_day_filter_2
@@ -440,7 +440,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
 
   max_day_agg_0:
@@ -457,7 +457,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   max_day_agg_1:
     container_name: max_day_agg_1
@@ -473,7 +473,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   max_day_agg_2:
     container_name: max_day_agg_2
@@ -489,7 +489,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   tag_filter_0:
     container_name: tag_filter_0
@@ -506,7 +506,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   tag_filter_1:
     container_name: tag_filter_1
@@ -523,7 +523,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   tag_filter_2:
     container_name: tag_filter_2
@@ -540,7 +540,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   likes_filter_0:
     container_name: likes_filter_0
@@ -560,7 +560,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   likes_filter_1:
     container_name: likes_filter_1
@@ -580,7 +580,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   likes_filter_2:
     container_name: likes_filter_2
@@ -600,7 +600,7 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
 
   duplicates_filter_0:
@@ -617,7 +617,7 @@ services:
     environment:
       - NODE_ID=0
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   duplicates_filter_1:
     container_name: duplicates_filter_1
@@ -633,7 +633,7 @@ services:
     environment:
       - NODE_ID=1
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true
 
   duplicates_filter_2:
     container_name: duplicates_filter_2
@@ -649,4 +649,4 @@ services:
     environment:
       - NODE_ID=2
       - PYTHONUNBUFFERED=1
-      - IS_POISONED=false
+      - IS_POISONED=true

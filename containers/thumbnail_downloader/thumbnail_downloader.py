@@ -83,7 +83,7 @@ class ThumbnailsDownloader(general_filter.GeneralFilter):
                 self.middleware.send(message_data)
         except Exception as e:
             logging.exception(e)
-            middleware.stop()
+            self.middleware.stop()
         self.query_state.commit(client_id, input_message['origin'], str(input_message['msg_id']))
 
     def process_priority_message(self, input_message):

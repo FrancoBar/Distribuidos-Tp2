@@ -13,8 +13,6 @@
 
 ### Objetivos
 
-**Descripción breve de objetivos  similar a la diapositiva**
-
 El objetivo del presente trabajo consiste en implementar un sistema distribuido con alto potencial de escalabilidad que permita un procesamiento paralelo de datos. Se hace énfasis especialmente en la tolerancia a fallos. 
 
 
@@ -250,7 +248,7 @@ Los mensajes de control siempre se transmiten por multicast a todas las réplica
 
 Max day filter y Max day agg son especiales en tanto deben emitir un único resultado tras recibir el mensaje de eof de la etapa previa y a su vez enviar el mensaje de eof a la siguiente.  En un primer momento el mecanismo de persistencia del estado era más rígido y se decidió unificarlos en un solo mensaje híbrido por simpleza. Eventualmente esta característica ha quedado de legado y en el futuro sería conveniente volver a separarlos en dos mensajes distintos.
 
-### 
+
 
 ### Persistencia del estado local
 
@@ -304,10 +302,6 @@ Como puede observarse, la mayoría de los filtros están pensados para permitir 
 Request Listener es la excepción, ya que si se preserva la táctica de long polling no puede descomponerse la conexión TCP de los clientes con facilidad. Ante su eventual falla se interrumpen las conexiones y las transacciones deben comenzar desde el principio. Persistir un id incremental de consulta evitaría que los datos a medio procesar de transacciones pasadas se interpretasen como parte de nuevas consultas, pero en algún momento tal id haría overflow. Por ello se envía un mensaje especial de desconexión que jamás se descarta. La respuesta al mensaje de desconexión es eliminar el estado de la consulta y propagar el mensaje por el pipeline. No es necesario evitar mensajes duplicados, ya que la operación es idempotente por naturaleza. 
 
 Cuando se comienza a procesar una consulta, en request listener se crea un archivo vacío cuyo nombre es el id de la consulta. Si el cliente se desconecta (exitosa o excepcionalmente) se envía el mensaje de desconexión y se borra el archivo que representaba la consulta. Si request listener falla repentinamente, cuando se recupera toma del nombre de los archivos el id de las transacciones interrumpidas y envía mensajes de desconexión para cada una de ellas. Luego borra los archivos y usa como siguiente id de consulta uno más que el mayor id encontrado.
-
-
-
-**Hablar de request listener como punto único de falla y protocolo de desconexión**
 
 
 

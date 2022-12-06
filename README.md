@@ -218,6 +218,18 @@ Actualmente, request_listener es el único nodo del negocio que no utiliza gener
 
 ### Flujo de mensajes
 
+![](./imgs/thumbnails_downloader_actividad.drawio.png)
+
+Diagrama de actividades
+
+
+
+A modo de introducción, en la figura se muestra uno de los tres flujos de datos del sistema para un único cliente. Se observa que la lectura y envío de entradas es en paralelo, pero su recepción y procesamiento es secuencial dentro de un nodo.
+
+Todo nodo almacena los ids de los mensajes recibidos. Si por algún error se duplicasen, se detectarían las copias al compararse su id con esta tabla antes de su procesamiento.  RabbitMQ garantiza el orden de los mensajes, así que no se necesitará almacenar  más que el id del último mensaje que cada nodo de la etapa anterior le ha enviado. Hasta aquí la caída de un nodo podría implicar ids distintos para los mismos mensajes y por tanto se realizaría un doble procesamiento de mensajes. El modo en que se evita este fenómeno se verá en la siguiente sección.
+
+
+
 
 
 ![](./imgs/secuencia_max_day.png)

@@ -9,90 +9,13 @@
 
 ## Problema a solucionar
 
+
+
 ### Objetivos
 
 **Descripción breve de objetivos  similar a la diapositiva**
 
-El objetivo del presente trabajo consiste en implementar un sistema distribuido con alto potencial de escalabilidad que permita un procesamiento paralelo de datos. Se hace énfasis especialmente en la tolerancia a fallos. Esto se debe a que al realizarse los cálculos en una red compuesta por varias computadoras se presenta un ambiente impredecible de ejecución, podría en cualquier momento desconectarse alguno de los centros de procesamientos de datos. A pesar de esto, nuestro programa debería evitar un fallo catastrófico, entrando en un estado de recuperación, de forma tal que eventualmente pueda volver a un estado normal de procesamiento, continuando todo trabajo que tuviera pendiente. 
-
-
-### Escenarios
-
-![](./imgs/casos_de_uso.png)
-
-*Diagrama de casos de uso*
-
-
-
-**C1: Obtener día con mayor cantidad de vistas totales** 
-
-*Actores: Cliente*
-
-*Flujo principal:*
-
-1 - Cliente ingresa configuración de consulta
-
-2 - Sistema responde ack
-
-3 - Cliente ingesta entrada por entrada datos al sistema
-
-4 - Sistema responde ack a cada dato.
-
-5 - Cliente indica fin de datos.
-
-6 - Sistema responde día con mayor cantidad de vistas totales y fin de datos.
-
-
-
-**C2: Obtener videos funny populares**
-
-Actores: Cliente.
-
-Flujo principal:
-
-1 - Cliente ingresa configuración de consulta
-
-2 - Sistema responde ack
-
-3 - Cliente ingesta entrada por entrada datos al sistema.
-
-4 - Sistema responde con los videos funny populares.
-
-5 - Cliente indica fin de datos.
-
-6 - Sistema responde día con fin de datos.
-
-
-
-**C3: Obtener thumbnail de videos trending**
-
-Actores: Cliente.
-
-Flujo principal:
-
-1 - Cliente ingresa configuración de consulta
-
-2 - Sistema responde ack
-
-3 - Cliente ingesta entrada por entrada datos al sistema.
-
-4 - Sistema responde con thumbnail de videos trending.
-
-5 - Cliente indica fin de datos.
-
-6 - Sistema responde día con fin de datos.
-
-
-
-**C4: Interrumpir servicio**
-
-Actores: Administrador, Cliente.
-
-Flujo principal:
-
-1 - Administrador envía señal de interrupción.
-
-2 - Sistema interrumpe consultas de Cliente y se detiene.
+El objetivo del presente trabajo consiste en implementar un sistema distribuido con alto potencial de escalabilidad que permita un procesamiento paralelo de datos. Se hace énfasis especialmente en la tolerancia a fallos. 
 
 
 
@@ -114,9 +37,98 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 
 
+
+### Escenarios
+
+![](./imgs/casos_de_uso.png)
+
+*Diagrama de casos de uso*
+
+
+
+**C1: Obtener día con mayor cantidad de vistas totales** 
+
+*Actores: Cliente*
+
+*Flujo principal:*
+
+1 - Cliente ingresa configuración de consulta.
+
+2 - Sistema responde ack.
+
+3 - Cliente ingesta datos al sistema, entrada por entrada. 
+
+4 - Sistema responde ack a cada dato.
+
+5 - Cliente indica fin de datos.
+
+6 - Sistema responde día con mayor cantidad de vistas totales y fin de datos.
+
+
+
+**C2: Obtener videos funny populares**
+
+Actores: Cliente.
+
+Flujo principal:
+
+1 - Cliente ingresa configuración de consulta.
+
+2 - Sistema responde ack.
+
+3 - Cliente ingesta datos al sistema, entrada por entrada. 
+
+4 - Sistema responde con los videos funny populares.
+
+5 - Cliente indica fin de datos.
+
+6 - Sistema responde con fin de datos.
+
+
+
+**C3: Obtener thumbnail de videos trending**
+
+Actores: Cliente.
+
+Flujo principal:
+
+1 - Cliente ingresa configuración de consulta.
+
+2 - Sistema responde ack.
+
+3 - Cliente ingesta datos al sistema, entrada por entrada. 
+
+4 - Sistema responde con thumbnail de videos trending.
+
+5 - Cliente indica fin de datos.
+
+6 - Sistema responde con fin de datos.
+
+
+
+**C4: Interrumpir servicio**
+
+Actores: Administrador, Cliente.
+
+Flujo principal:
+
+1 - Administrador envía señal de interrupción.
+
+2 - Sistema interrumpe consultas de Cliente y se detiene.
+
+
+
+
+
+
+
 ## Arquitectura de Software
 
 ![](./imgs/robustez_simple.drawio.png)
+
+*Diagrama de arquitectura esquemático*
+
+
 
 A simple vista, como se muestra en el diagrama presentado, la arquitectura diseñada es tal que un cliente se conecta a un contenedor aceptador que se encarga de manejar la comunicación, y delega el procesamiento de los datos a un cluster de computadoras, que le devuelve los resultados que debe comunicar al cliente.
 
@@ -132,6 +144,8 @@ Se cuenta con un cluster de health-monitors que se comunican con el resto del si
 
 ## Vista Lógica
 
+### División de carga y direccionamiento de mensajes
+
 ![](./imgs/dag.png)
 
 *DAG global de tareas*
@@ -145,9 +159,8 @@ Para aprovechar estas funcionalidades correctamente, se asignó a cada nodo de c
 Al poder en cualquier momento producirse una caída de un servicio, cancelando así el procesamiento obligatorio de un dato, se genera la necesidad de recalcular este procesamiento para poder continuar con la normal ejecución de tareas del pedido del cliente. Si se utilizara un balanceo de cargas del tipo round robin o similar, de forma tal que un mismo dato pudiera terminar en distintos nodos para ser procesado en distintas ocasiones, entonces se debería tener un método de persistencia de logs centralizado al cual deben acceder todos los nodos que procesan los datos, ya que todo mensaje recibido podría ser uno que logró procesar otro nodo, además de producir otros problemas de coordinación y de eficiencia por acceso a un recurso único. Al utilizar el sistema de hashing, se garantiza que cada dato irá siempre al mismo nodo, por lo que cada uno puede tener su propio sistema de persistencia de logs, sin tener que tener acceso a los resultados de procesamiento de los otros nodos, ignorando así la limitación de tener que acceder a un recurso único compartido por varios consumidores.
 
 
-**F - Incluir diag. estados de health-monitor y explicar**
 
-
+### Abstracción de comportamiento común
 
 
 
@@ -155,41 +168,41 @@ Al poder en cualquier momento producirse una caída de un servicio, cancelando a
 
 *Diagrama de clases del middleware*
 
+
+
 Se encapsuló la lógica de recepción y envío de mensajes entre canales y sockets en una capa de middleware que cada etapa del pipeline consumía. El diagrama presenta la jerarquía de clases interna de los filtros del middleware. _ExchangeQueueIn, _ExchangeQueueOut y _TCPQueue ocultan los detalles del modo en que se serializan y transmiten los mensajes, mientras que _BaseFilter reúne el compartamiento común a todo filtro, como ser la administración de las colas y el procesamiento de señales. _ConnectionFilter especializa _BaseFilter para el manejo de conexiones con RabbitMQ y finalmente ExchangeExchangeFilter, TCPExchangeFilter y ExchangeTCPFilter abstráen los detalles más delicados de la inicialización de las colas y presentan al usuario una interfaz uniforme y sencilla.
 
-*Diagrama de clases representativo de los filtros*
+
 
 ![](./imgs/containers_class_diagram.drawio.png)
 
-Los distintos contenedores que componen el sistema distribuido, es decir, los filtros, fueron implementados en forma de clase. Esto se hizo ya que permitió generalizar implementaciones de funcionalidades de comunicación, además de aprovechar otros beneficios de la herencia, como es la redifinición de métodos de la clase padre. Podemos ver en este diagrama de clases simplificados dos casos extremos del aprovechamiento de la existencia de la clase GeneralFilter, que es la que encapsula el comportamiento generalizado de los contenedores. En el diagrama vemos 2 clases distintas:  
-- Por un lado vemos la clase LikesFilter, que al englobar una lógica bastante simple solo debe implementar la función `process_data_message`, cumpliendo así su función de pasar a la siguiente etapa únicamente los mensajes que cumplan con la mínima cantidad de likes indicada.  
-- Por otro lado, vemos la clase MaxDayAggregator, que realiza una reimplementación de varios métodos de GeneralFilter, ya que debe tomar en cuenta una mayor cantidad de casos especiales. Reimplementa `_on_config` ya que no envía los mensajes de configuración a la siguiente etapa (que es RequestListener, por lo que no los neecesita). Reimplementa también `_on_last_eof` ya que debe indicar en el mensaje de eof quién produce el resultado, además de producir el resultado en sí (este contenedor no tiene mensajes de data, solo envía su resultado al terminar el procesamiento del cliente). Se da una reimplementación del método `_on_eof`, ya que por cada mensaje de eof recibido de la etapa anterior (MaxDayFilter) se actualiza el día con mayor cantidad de views que almacena actualmente el contenedor. El método `process_data_message` se reimplementa como el raise de una excepción ya que, al no enviar la etapa anterior en ningún momento un mensaje de tipo data, en caso de recibir uno se sabe que se manifestó un error en el procesamiento de datos. Por último, se reimplementa `process_priority_message`, para evitar que el mensaje de disconnect se propague a la siguiente etapa, que es RequestListener y no lo necesita.
-
-## Vista de Procesos
-
-****
-
-**F - Mejorar mismo caso, monigote/actor de sistema, Ajustar activación y media flecha (asincrónica)**
-
-![](./imgs/secuencia_max_day.png)
-
-*Diagrama de secuencia flujo de día máximo*
+*Diagrama de clases representativo de los filtros*
 
 
 
-El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio, mientras que los segundos pueden ser del tipo config o eof.
+Los distintos filtros que componen el sistema fueron implementados en forma de clase. Esto permitió generalizar implementaciones de funcionalidades de comunicación en GeneralFilter, además de aprovechar otros beneficios de la herencia, como es la redifinición de métodos de la clase padre.
 
-La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido.
-
-El nodo destino de los mensajes de data se desprende de su contenido... **A - Hablar de hash?**
-
-Los mensajes de control siempre se transmiten por multicast a todas las réplicas del siguiente nodo del pipeline. En el caso de los eof es necesario que todas las replicas anteriores lo hayan emitido para propagarlo. Para el config es suficiente que se reciba y propague una sola vez, si se recibe nuevamente sencillamente se descarta. Esta metodología no solo evita mensajes innecesarios, sino que además garantiza que antes de recibir cualquier dato de la solicitud del cliente se recibirá un config, si al recuperarse de una caída un nodo recibe eof de una consulta sin config o datos puede ignorarlo, pues el único caso en el que eso pasaría es cuando al recibir el último eof se borra el archivo de log de una consulta y el container se reinicia antes de emitir el ack hacia atrás.
+Podemos ver en este diagrama de clases simplificado,  dos casos extremos de ello:
 
 
 
-**Health monitors (diagrama pendiente)**
+- Por un lado observamos la clase LikesFilter, que al englobar una lógica bastante simple solo debe implementar la función `process_data_message`, cumpliendo así su función de pasar a la siguiente etapa únicamente los mensajes que cumplan con la mínima cantidad de likes indicada. 
 
-Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-monitors" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída.
+  
+
+- Por otro lado, se encuentra la clase MaxDayAggregator, que reimplementa varios métodos de GeneralFilter, ya que debe tomar en cuenta una mayor cantidad de casos especiales. Reimplementa `_on_config` dado que no envía los mensajes de configuración a RequestListener, por que no los neecesita). Sobreescribe también `_on_last_eof` ya que debe indicar en el mensaje de eof quién produce el resultado, además de producir el resultado en sí (recordar que este contenedor no tiene mensajes de data). Se da una reimplementación del método `_on_eof`, debido a que por cada mensaje de eof recibido de MaxDayFilter se actualiza el día con mayor cantidad de views que almacena actualmente el contenedor. El método `process_data_message` se reimplementa como el raise de una excepción ya que, al no enviar la etapa anterior en ningún momento un mensaje de tipo data, en caso de recibir uno se sabe que se manifestó un error en el procesamiento de datos. Por último, se reimplementa `process_priority_message`, para evitar que el mensaje de disconnect (del que se hablará más adelante) se propague a la siguiente etapa, que es RequestListener y no lo necesita.
+
+
+
+###  Health checking
+
+![](./imgs/estados_health_checkers.png)
+
+*Diagrama de estados de health chckers*
+
+
+
+Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-checkers" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída.
 
 El consenso de para la elección de lider se alcanza mediante una ligera variante del algoritmo Bully donde el nodo con mayor id no se anuncia automáticamente como líder,sino que participa del proceso de elección, aunque evidentemente ganará.  Se decidió seguir este camino para que pueda apreciarse el intercambio de mensajes de elección, puesto que el nodo con mayor id no se encuentra inactivo por mucho tiempo.
 
@@ -199,9 +212,47 @@ Los exchanges o colas  de rabbit permiten desentenderse de los detalles de comun
 
 
 
-**Actividades mostrando funcionamiento mini de sistema**
+## Vista de Desarrollo
+
+![](./imgs/packages.png)
+
+*Diagrama de paquetes de duplication filter*
 
 
+
+Aunque en el diagrama se muestra duplication filter, casi todos los componentes del sistema se adhieren a la estructura de paquetes enseñada. Hacen uso directamente o indirectamente del middleware, que se encarga de la declaración de colas y la interacción con ellas y que al recibir un mensaje invoca una callback especificada en su construcción. 
+
+Actualmente, request_listener es el único nodo del negocio que no utiliza general filter, y por tanto implementa funcionalidades de persistencia de estado.
+
+
+
+## Vista de Procesos
+
+
+
+### Flujo de mensajes
+
+
+
+![](./imgs/secuencia_max_day.png)
+
+*Diagrama de secuencia flujo de día máximo*
+
+
+
+El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio e incluyen id de mensaje, nodo origen, id de cliente y datos  de la etapa; mientras que los segundos pueden ser del tipo config o eof y contendrán campos particulares a cada situación.
+
+La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido.
+
+El nodo destino de los mensajes de data se desprende de su contenido del modo en que fue explicado en la sección de direccionamiento de mensajes.
+
+Los mensajes de control siempre se transmiten por multicast a todas las réplicas del siguiente nodo del pipeline. En el caso de los eof es necesario que todas las replicas anteriores lo hayan emitido para propagarlo. Para el config es suficiente que se reciba y propague una sola vez, si se recibe nuevamente sencillamente se descarta. Esta metodología no solo evita mensajes innecesarios, sino que además garantiza que antes de recibir cualquier dato de la solicitud del cliente se recibirá un config, si al recuperarse de una caída un nodo recibe eof de una consulta sin config o datos puede ignorarlo, pues el único caso en el que eso pasaría es cuando al recibir el último eof se borra el archivo de log de una consulta y el container se reinicia antes de emitir el ack hacia el middleware de mensajes.
+
+Max day filter y Max day agg son especiales en tanto deben emitir un único resultado tras recibir el mensaje de eof de la etapa previa y a su vez enviar el mensaje de eof a la siguiente.  En un primer momento el mecanismo de persistencia del estado era más rígido y se decidió unificarlos en un solo mensaje híbrido por simpleza. Eventualmente esta característica ha quedado de legado y en el futuro sería conveniente volver a separarlos en dos mensajes distintos.
+
+### 
+
+### Persistencia del estado local
 
 
 
@@ -238,31 +289,11 @@ Request listener no está sujeto en rigor a  los comportamientos aquí descritos
 
 
 
-## Vista de Desarrollo
-
-**Actualizar**
-
-![](./imgs/paquetes.png)
-
-*Diagrama de paquetes de request_listener*
-
-
-
-Como se adelantó en la sección anterior, casi todos los componentes del sistema se adhieren a la estructura de paquetes enseñada en el diagrama: Hacen uso de un filtro base del middleware, que se encarga de la declaración de colas y la interacción con ellas y que al recibir un mensaje invoca una callback especificada en su construcción.
-
-Actualmente, request_listener es el único que emplea colas TCP. En tal caso el middleware hace uso de módulos de transmisión y comunicación confiable de datos por sockets.  Server.py encapsula solo la lógica de escucha y aceptación de conexiones entrantes. 
-
-
-
-
-
-
-
 ## Vista Física
 
 ![](./imgs/robustez.png)
 
-
+**\*** *Health checker se conecta con todos los nodos.*
 
 *Diagrama de robustez*
 

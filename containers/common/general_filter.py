@@ -8,7 +8,7 @@ class GeneralFilter:
         self.previous_stage_amount = previous_stage_amount
         self.middleware = middleware
         self.query_state = query_state
-        self.health_check_process = mp.Process(target=echo_server, daemon=False)
+        self.health_check_process = mp.Process(target=echo_server, daemon=True)
         self.health_check_process.start()
 
     def process_control_message(self, input_message):
@@ -78,10 +78,7 @@ class GeneralFilter:
             self.process_control_message(input_message)
 
     def start_received_messages_processing(self):
-        try:
-            self.middleware.run()
-        except pika.exceptions:
-            pass
+        self.middleware.run()
 
     def stop_health_process(self):
         self.health_check_process.kill()

@@ -52,15 +52,11 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 1 - Cliente ingresa configuración de consulta.
 
-2 - Sistema responde ack.
+2 - Sistema configura consulta.
 
-3 - Cliente ingesta datos al sistema, entrada por entrada. 
+3 - Cliente ingesta datos al sistema.
 
-4 - Sistema responde ack a cada dato.
-
-5 - Cliente indica fin de datos.
-
-6 - Sistema responde día con mayor cantidad de vistas totales y fin de datos.
+4 - Sistema responde día con mayor cantidad de vistas totales.
 
 
 
@@ -72,15 +68,11 @@ Flujo principal:
 
 1 - Cliente ingresa configuración de consulta.
 
-2 - Sistema responde ack.
+2 - Sistema configura consulta.
 
-3 - Cliente ingesta datos al sistema, entrada por entrada. 
+3 - Cliente ingesta datos al sistema.
 
-4 - Sistema responde con los videos funny populares.
-
-5 - Cliente indica fin de datos.
-
-6 - Sistema responde con fin de datos.
+4 - Sistema responde con los videos funny populares y fin de datos.
 
 
 
@@ -92,15 +84,11 @@ Flujo principal:
 
 1 - Cliente ingresa configuración de consulta.
 
-2 - Sistema responde ack.
+2 - Sistema configura consulta.
 
-3 - Cliente ingesta datos al sistema, entrada por entrada. 
+3 - Cliente ingesta datos al sistema.
 
-4 - Sistema responde con thumbnail de videos trending.
-
-5 - Cliente indica fin de datos.
-
-6 - Sistema responde con fin de datos.
+4 - Sistema responde con thumbnail de videos trending y fin de datos.
 
 
 
@@ -132,7 +120,7 @@ A simple vista, como se muestra en el diagrama presentado, la arquitectura dise�
 
 Para la ejecución de las tareas con alto throughput se consideró adecuado el planteo de una arquitectura del tipo pipeline, cuyas colas intermedias son gestionadas por un middleware de mensajes externo.
 
-Bastó con acompañar los mensajes con un id de query para separar el estado local de cada nodo y sumar una ganancia en paralelismo por la intercalación de operaciones entre solicitudes clientes.
+Bastó con acompañar los mensajes con un id de query para separar el estado local de cada nodo y sumar una ganancia en paralelismo por la intercalación de operaciones entre solicitudes de clientes.
 
 Los clientes se comunican por un socket TCP a un único punto de entrada y salida del sistema (y un único punto de falla). En una primer fase ingestan al sistema entrada por entrada los datos a procesar y  luego quedan a la espera de mensajes de respuesta.
 
@@ -150,11 +138,11 @@ Se cuenta con un cluster de health-monitors que se comunican con el resto del si
 
 El DAG previo muestra una división lógica de tareas, sus dependencias y el flujo de datos (se excluyen señales de control). Se observa como solo un subconjunto de campos de los datos de entrada son necesarios para dar respuesta a las consultas planteadas y como la mayoría de dichos campos pueden descartarse tras su uso. Existe  una correspondencia uno a uno entre etapas del pipeline y tareas, con la salvedad del filtrado de videos trending en todos los países por 21 días, que finalmente se redujo a una sola etapa, para disminuir redundancia de operaciones.
 
-Como se indicó previamente, uno de los objetivos de este sistema distribuido es tener un poder de escalamiento extremadamente grande. Debido a esto, se quiere poder dividir la carga del procesamiento de datos en varias unidades de cómputo distintas, de forma tal que se reduzca el tiempo de espera de un cliente. Para poder cumplir con lo recientemente establecido, se decidió realizar un balance de carga utilizando una función de hashing, que genera resultados uniformemente distribuidos, para direccionar también de forma uniforme los datos enviados a los distintos nodos.
+Como se indicó previamente, uno de los objetivos de este sistema distribuido es exhibir alto grado de escalamiento. Para poder dividir la carga del procesamiento de datos en varias unidades de cómputo distintas, se decidió realizar un balance de carga utilizando los exchanges de Rabbitmq y una función de hashing propia, que permite direccionar uniformemente los datos enviados a los distintos nodos.
 
-Para aprovechar estas funcionalidades correctamente, se asignó a cada nodo de cada etapa del pipeline un número de id, el cual se utilizaría para determinar junto con el valor del hash del dato a qué nodo se redirigiría este para ser procesado. Esto se hizo no solo con funcionalidades de balance de carga, sino que también con el objetivo de facilitar la implementación de la tolerancia a fallas, ya que el determinismo de la función de hashing sobre un dato permite asegurar que este siempre será enviado al nodo que tenga el id que resuelte de aplicarle la función de hashing.
+Para aprovechar estas funcionalidades correctamente, se asignó a cada nodo de cada etapa del pipeline un número de id, el cual se utilizaría para determinar junto con el valor del hash del dato, a qué nodo se redirigiría para ser procesado. Esto además facilitó la implementación de la tolerancia a fallas, ya que el determinismo de la función de hashing sobre un dato permite asegurar que éste siempre será enviado al nodo que tenga el id que resuelte de aplicarle la función de hashing.
 
-Al poder en cualquier momento producirse una caída de un servicio, cancelando así el procesamiento obligatorio de un dato, se genera la necesidad de recalcular este procesamiento para poder continuar con la normal ejecución de tareas del pedido del cliente. Si se utilizara un balanceo de cargas del tipo round robin o similar, de forma tal que un mismo dato pudiera terminar en distintos nodos para ser procesado en distintas ocasiones, entonces se debería tener un método de persistencia de logs centralizado al cual deben acceder todos los nodos que procesan los datos, ya que todo mensaje recibido podría ser uno que logró procesar otro nodo, además de producir otros problemas de coordinación y de eficiencia por acceso a un recurso único. Al utilizar el sistema de hashing, se garantiza que cada dato irá siempre al mismo nodo, por lo que cada uno puede tener su propio sistema de persistencia de logs, sin tener que tener acceso a los resultados de procesamiento de los otros nodos, ignorando así la limitación de tener que acceder a un recurso único compartido por varios consumidores.
+Al poder producirse la caída de un servicio en cualquier momento, cancelando así el procesamiento obligatorio de un dato, se genera la necesidad de repetir este procesamiento para poder continuar con la normal ejecución de tareas del pedido del cliente. Si se utilizara un balanceo de cargas del tipo round robin o similar, de forma tal que un mismo dato pudiera terminar en distintos nodos para ser procesado en distintas ocasiones, entonces se debería tener un método de persistencia de logs centralizado al cual deberían acceder todos los nodos que procesan los datos, ya que todo mensaje recibido podría ser uno que logró procesar otro nodo, además de producir otros problemas de coordinación y de eficiencia por acceso a un recurso único. Al utilizar el sistema de hashing, se garantiza que cada dato irá siempre al mismo nodo, por lo que cada uno puede tener su propio sistema de persistencia de logs, sin tener que tener acceso a los resultados de procesamiento de los otros nodos, ignorando así la limitación de tener que acceder a un recurso único compartido por varios consumidores.
 
 
 
@@ -196,17 +184,17 @@ Podemos ver en este diagrama de clases simplificado,  dos casos extremos de ello
 
 ![](./imgs/estados_health_checkers.png)
 
-*Diagrama de estados de health chckers*
+*Diagrama de estados de health checkers*
 
 
 
 Para el monitoreo del estado de los contenedores se dispuso un cluster de "health-checkers" con comportamiento homogéneo, en donde un lider electo visita secuencialmente los servicios a monitorear  (incluído el cluster de health-monitoring) y sus respaldos se preparan para tomar su lugar ante su caída.
 
-El consenso de para la elección de lider se alcanza mediante una ligera variante del algoritmo Bully donde el nodo con mayor id no se anuncia automáticamente como líder,sino que participa del proceso de elección, aunque evidentemente ganará.  Se decidió seguir este camino para que pueda apreciarse el intercambio de mensajes de elección, puesto que el nodo con mayor id no se encuentra inactivo por mucho tiempo.
+El consenso para la elección de lider se alcanza mediante una ligera variante del algoritmo Bully donde el nodo con mayor id no se anuncia automáticamente como líder,sino que participa del proceso de elección, aunque evidentemente ganará.  Se decidió seguir este camino para que pueda apreciarse el intercambio de mensajes de elección, puesto que el nodo con mayor id no se encuentra inactivo por mucho tiempo.
 
-Los exchanges o colas  de rabbit permiten desentenderse de los detalles de comunicación pero para esta aplicación su overhead y durabilidad entorpecen un proceso que es en esencia muy simple. Un mesh TCP es apto para el intercambio de mensajes largos pero nuevamente se consideró demasiado para el problema a enfrentar. 
+Los exchanges o colas  de rabbit permiten desentenderse de los detalles de comunicación, pero para esta aplicación su overhead y durabilidad entorpecen un proceso que es en esencia muy simple. Un mesh TCP es apto para el intercambio de mensajes largos pero nuevamente se consideró demasiado para el problema a enfrentar. 
 
- Se dispuso que el líder recorra en  roundrobin una lista de nombres (que el DNS de docker traduce a direcciones IP) y envíe un número incremental por sockets UDP. Cada container cuenta con un proceso escucha en la dirección y puerto apropiada y hace eco del mensaje recibido. Mientras el lider recibe el número como respuesta espera. Si se cumple un timeout se reenvía el mensaje y se repite la espera hasta 3 veces. Entonces se considera fallido el nodo consultado y se ordena por *docker in docker* que se reinicie.
+ Se dispuso que el líder recorra en roundrobin una lista de nombres (que el DNS de docker traduce a direcciones IP) y envíe un número incremental por sockets UDP. Cada container cuenta con un proceso escucha en la dirección y puerto apropiada y hace eco del mensaje recibido. Mientras el lider no reciba el número como respuesta esperará. Si se cumple un timeout se reenvía el mensaje y se repite la espera hasta 3 veces. Entonces se considera fallido el nodo consultado y se ordena por *docker in docker* que se reinicie.
 
 
 
@@ -220,7 +208,7 @@ Los exchanges o colas  de rabbit permiten desentenderse de los detalles de comun
 
 Aunque en el diagrama se muestra duplication filter, casi todos los componentes del sistema se adhieren a la estructura de paquetes enseñada. Hacen uso directamente o indirectamente del middleware, que se encarga de la declaración de colas y la interacción con ellas y que al recibir un mensaje invoca una callback especificada en su construcción. 
 
-Actualmente, request_listener es el único nodo del negocio que no utiliza general filter, y por tanto implementa funcionalidades de persistencia de estado.
+Actualmente, request_listener es el único nodo del negocio que no utiliza general filter, y por tanto implementa funcionalidades de persistencia de estado propias.
 
 
 
@@ -240,7 +228,7 @@ Actualmente, request_listener es el único nodo del negocio que no utiliza gener
 
 El flujo del cálculo del día máximo permite destacar aspectos relevantes del protocolo general de comunicación. El contenido específico de los mensajes no es el foco de éste diagrama, es suficiente conocer que existen mensajes de datos y de control. Los primeros corresponden al negocio e incluyen id de mensaje, nodo origen, id de cliente y datos  de la etapa; mientras que los segundos pueden ser del tipo config o eof y contendrán campos particulares a cada situación.
 
-La señal de eof no es un capricho, se requiere su emisión tanto para resetear los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido.
+La señal de eof no es un capricho, se requiere su emisión tanto para eliminar datos de los filtros que presentan estado, como para concluir operaciones potencialmente infinitas. Más aún, todo retorno de los cálculos, por la naturaleza del pipeline, es opcional y diferido.
 
 El nodo destino de los mensajes de data se desprende de su contenido del modo en que fue explicado en la sección de direccionamiento de mensajes.
 
@@ -256,9 +244,13 @@ Max day filter y Max day agg son especiales en tanto deben emitir un único resu
 
 ![](./imgs/actividades_recu.png)
 
+***** El estado en memoria solo se actualiza en  Procesar lineas pendientes.
+
 *Flujo de recuperación de estado de archivo de log*
 
-Todo nodo debe ser capaz de recuperar su estado ante una falla y posterior reinicio. El estado incluye la reconstrucción de estructuras de dato pertinentes a la consulta, los últimos mensajes recibidos y procesados (para garantizar idempotencia de mensajes) y el último id utilizado para emitir un mensaje, de modo tal que el siguiente nodo pueda diferenciar los mensajes que ya proceso solo inspeccionando este id.
+
+
+Todo nodo debe ser capaz de recuperar su estado ante una falla y posterior reinicio. El estado incluye la reconstrucción de estructuras de datos pertinentes a la consulta, los últimos mensajes recibidos y procesados (para garantizar idempotencia de mensajes) y el último id utilizado para emitir un mensaje, de modo tal que el siguiente nodo pueda diferenciar los mensajes que ya proceso solo inspeccionando este id.
 
 Se debió brindar tolerancia ante cortes de luz y otras situaciones en donde ni siquiera puede confiarse en la correcta escritura de información en disco, por lo que dentro de un solo nodo debió diseñarse un protocolo de escritura como los que se estudia para bases de datos, aunque notablemente más sencillo.
 
@@ -271,6 +263,7 @@ w,2,0,1,4/10/1997,BR
 c,
 w,1,3,2,8/12/1998,KR
 c,
+
 ```
 
 Las entradas precedidas por *w* (write) almacenan la información útil, los campos son: el id del nodo de donde provino el mensaje, id del mensaje que ingresó, id de mensaje propio y campos opcionales de clave y valor, cuyo parseo puede complejizarse de ser necesario.  Múltiples entradas w pueden encontrarse antes de un commit .

@@ -274,7 +274,7 @@ Si ocurre una falla pueden ocurrir múltiples situaciones. En general, todo conj
 
 Cuando una transacción finaliza, correctamente o por desconexión,  su archivo de log asociado puede borrarse.
 
-El log evita cualquier corrupción del estado propio y la tabla de últimos mensajes recibidos evita la propagación de errores filtrando mensajes duplicados entre más de dos nodos.
+El log evita cualquier corrupción del estado propio, y la tabla de últimos mensajes recibidos evita la propagación de errores filtrando mensajes duplicados entre más de dos nodos.
 
 Request listener no está sujeto en rigor a  los comportamientos aquí descritos. Debe tratarse especialmente para evitar que una cadena de mensajes duplicados (suceso extremadamente improbable, pero aún posible) se propague al cliente. Ante la falla de request listener se produce un flujo de desconexión que se explicará más adelante.
 

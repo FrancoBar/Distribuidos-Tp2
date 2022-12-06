@@ -116,9 +116,9 @@ Los nodos del sistema se concentrarán en containers. Podrá utilizarse la API d
 
 ## Arquitectura de Software
 
-**Agregar descripción a grandes rasgos (inspirarse en robustez)**
-
 ![](./imgs/robustez_simple.drawio.png)
+
+A simple vista, como se muestra en el diagrama presentado, la arquitectura diseñada es tal que un cliente se conecta a un contenedor aceptador que se encarga de manejar la comunicación, y delega el procesamiento de los datos a un cluster de computadoras, que le devuelve los resultados que debe comunicar al cliente.
 
 Para la ejecución de las tareas con alto throughput se consideró adecuado el planteo de una arquitectura del tipo pipeline, cuyas colas intermedias son gestionadas por un middleware de mensajes externo.
 
